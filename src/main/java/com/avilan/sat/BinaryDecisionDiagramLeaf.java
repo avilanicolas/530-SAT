@@ -1,5 +1,7 @@
 package com.avilan.sat;
 
+import java.util.Map;
+
 public enum BinaryDecisionDiagramLeaf implements BinaryDecisionDiagram {
    TRUE, FALSE;
 
@@ -25,5 +27,13 @@ public enum BinaryDecisionDiagramLeaf implements BinaryDecisionDiagram {
       }
 
       return TRUE;
+   }
+
+   public boolean satisfies(final Map<SATVariable, Boolean> values) {
+      return this == TRUE;
+   }
+
+   public BinaryDecisionDiagram assume(SATVariable variable, Boolean value) {
+      return this;
    }
 }
