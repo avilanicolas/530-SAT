@@ -1,31 +1,35 @@
 package com.avilan.sat;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 
-@EqualsAndHashCode
+/**
+ * A decision diagram representing a boolean equation. This diagram attempts to simplify
+ * its structure when it can by removing variables from the diagram 
+ */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
 
    private final SATVariable primaryVariable;
-   private final List<SATVariable> variables;
+   private final Set<SATVariable> variables;
    private final BinaryDecisionDiagram trueBranch;
    private final BinaryDecisionDiagram falseBranch;
 
    public static BinaryDecisionDiagramNode of(
          final SATVariable variable) {
-      return of(variable, ImmutableList.of(variable));
+      return of(variable, ImmutableSet.of(variable));
    }
 
    public static BinaryDecisionDiagramNode of(
          final SATVariable variable,
-         final List<SATVariable> variables) {
+         final Set<SATVariable> variables) {
       return new BinaryDecisionDiagramNode(
          variable,
          variables,
@@ -33,72 +37,57 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
          BinaryDecisionDiagramLeaf.FALSE);
    }
 
-   public BinaryDecisionDiagram and(final BinaryDecisionDiagram diagram) {
-      if (diagram instanceof BinaryDecisionDiagramLeaf) {
-         return diagram.and(this);
-      }
-
-      BinaryDecisionDiagramNode otherNode = (BinaryDecisionDiagramNode) diagram;
-
-      if (primaryVariable.equals(otherNode.primaryVariable)) {
-         BinaryDecisionDiagram intersectionTrue = trueBranch.and(otherNode.trueBranch);
-         BinaryDecisionDiagram intersectionFalse = falseBranch.and(otherNode.falseBranch);
-
-         if (intersectionTrue instanceof BinaryDecisionDiagramLeaf
-               && intersectionFalse instanceof BinaryDecisionDiagramLeaf
-               && intersectionTrue == intersectionFalse) {
-            return intersectionTrue;
-         }
-
-         return new BinaryDecisionDiagramNode(
-            primaryVariable,
-            variables,
-            intersectionTrue,
-            intersectionFalse);
-      }
-
-      return new BinaryDecisionDiagramNode(
-         primaryVariable,
-         ImmutableList.<SATVariable> builder()
-            .addAll(variables)
-            .addAll(otherNode.variables)
-            .build(),
-         trueBranch.and(diagram.assume(primaryVariable, true)),
-         falseBranch.and(diagram.assume(primaryVariable, false)));
+   public BinaryDecisionDiagram or(final BinaryDecisionDiagram diagram) {
+      return merge(diagram, (d1, d2) -> d1.or(d2));
    }
 
-   public BinaryDecisionDiagram or(final BinaryDecisionDiagram diagram) {
+   public BinaryDecisionDiagram and(final BinaryDecisionDiagram diagram) {
+      return merge(diagram, (d1, d2) -> d1.and(d2));
+   }
+
+   private BinaryDecisionDiagram merge(
+         final BinaryDecisionDiagram diagram,
+         final BiFunction<BinaryDecisionDiagram, BinaryDecisionDiagram, BinaryDecisionDiagram> merge) {
       if (diagram instanceof BinaryDecisionDiagramLeaf) {
-         return diagram.or(this);
+         return merge.apply(diagram, this);
       }
 
       BinaryDecisionDiagramNode otherNode = (BinaryDecisionDiagramNode) diagram;
 
       if (primaryVariable.equals(otherNode.primaryVariable)) {
-         BinaryDecisionDiagram unionTrue = trueBranch.or(otherNode.trueBranch);
-         BinaryDecisionDiagram unionFalse = falseBranch.or(otherNode.falseBranch);
+         BinaryDecisionDiagram mergedTrue =
+            merge.apply(trueBranch, otherNode.trueBranch.assume(primaryVariable, true));
+         BinaryDecisionDiagram mergedFalse =
+            merge.apply(falseBranch, otherNode.falseBranch.assume(primaryVariable, false));
 
-         if (unionTrue instanceof BinaryDecisionDiagramLeaf
-               && unionFalse instanceof BinaryDecisionDiagramLeaf
-               && unionTrue == unionFalse) {
-            return unionTrue;
+         if (canSimplify(mergedTrue, mergedFalse)) {
+            return mergedTrue;
          }
 
          return new BinaryDecisionDiagramNode(
             primaryVariable,
             variables,
-            unionTrue,
-            unionFalse);
+            mergedTrue,
+            mergedFalse);
+      }
+
+      BinaryDecisionDiagram mergedTrue =
+         merge.apply(trueBranch, otherNode.assume(primaryVariable, true));
+      BinaryDecisionDiagram mergedFalse =
+         merge.apply(falseBranch, otherNode.assume(primaryVariable, false));
+
+      if (canSimplify(mergedTrue, mergedFalse)) {
+         return mergedTrue;
       }
 
       return new BinaryDecisionDiagramNode(
          primaryVariable,
-         ImmutableList.<SATVariable> builder()
+         ImmutableSet.<SATVariable> builder()
             .addAll(variables)
             .addAll(otherNode.variables)
             .build(),
-         trueBranch.or(diagram.assume(primaryVariable, true)),
-         falseBranch.or(diagram.assume(primaryVariable, false)));
+         mergedTrue,
+         mergedFalse);
    }
 
    public BinaryDecisionDiagram not() {
@@ -128,17 +117,51 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
          return value ? trueBranch : falseBranch;
       }
 
+      BinaryDecisionDiagram trueBranchAssumed = trueBranch.assume(variable, value);
+      BinaryDecisionDiagram falsedBranchAssumed = falseBranch.assume(variable, value);
+      if (canSimplify(trueBranchAssumed, falsedBranchAssumed)) {
+         return trueBranchAssumed;
+      }
+
       return new BinaryDecisionDiagramNode(
            primaryVariable,
-           variables,
-           trueBranch.assume(variable, value),
-           falseBranch.assume(variable, value));
+           variables.stream()
+              .filter(v -> !v.equals(variable))
+              .collect(Collectors.toSet()),
+           trueBranchAssumed,
+           falsedBranchAssumed);
+   }
+
+   private boolean canSimplify(
+         final BinaryDecisionDiagram d1,
+         final BinaryDecisionDiagram d2) {
+      return d1 instanceof BinaryDecisionDiagramLeaf
+         && d2 instanceof BinaryDecisionDiagramLeaf
+         && d1 == d2;
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (o == this) {
+         return true;
+      }
+
+      if (o == null || !(o instanceof BinaryDecisionDiagramNode)) {
+         return false;
+      }
+
+      BinaryDecisionDiagramNode other = (BinaryDecisionDiagramNode) o;
+      return
+         primaryVariable.equals(other.primaryVariable)
+            && variables.equals(other.variables)
+            && trueBranch.equals(other.trueBranch)
+            && falseBranch.equals(other.falseBranch);
    }
 
    @Override
    public String toString() {
       return String.format(
-            "[%s | true: %s, false: %s]",
+            "[%s, true: %s, false: %s]",
             primaryVariable,
             trueBranch,
             falseBranch);
