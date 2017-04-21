@@ -15,72 +15,72 @@ import lombok.AllArgsConstructor;
  * its structure when it can by removing variables from the diagram 
  */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
+public class DecisionDiagramNode implements DecisionDiagram {
 
    private final SATVariable primaryVariable;
    private final Set<SATVariable> variables;
-   private final BinaryDecisionDiagram trueBranch;
-   private final BinaryDecisionDiagram falseBranch;
+   private final DecisionDiagram trueBranch;
+   private final DecisionDiagram falseBranch;
 
-   public static BinaryDecisionDiagramNode of(
+   public static DecisionDiagramNode of(
          final SATVariable variable) {
       return of(variable, ImmutableSet.of(variable));
    }
 
-   public static BinaryDecisionDiagramNode of(
+   public static DecisionDiagramNode of(
          final SATVariable variable,
          final Set<SATVariable> variables) {
-      return new BinaryDecisionDiagramNode(
+      return new DecisionDiagramNode(
          variable,
          variables,
-         BinaryDecisionDiagramLeaf.TRUE,
-         BinaryDecisionDiagramLeaf.FALSE);
+         DecisionDiagramLeaf.SATISFIABLE,
+         DecisionDiagramLeaf.UNSATISFIABLE);
    }
 
-   public BinaryDecisionDiagram or(final BinaryDecisionDiagram diagram) {
+   public DecisionDiagram or(final DecisionDiagram diagram) {
       return merge(diagram, (d1, d2) -> d1.or(d2));
    }
 
-   public BinaryDecisionDiagram and(final BinaryDecisionDiagram diagram) {
+   public DecisionDiagram and(final DecisionDiagram diagram) {
       return merge(diagram, (d1, d2) -> d1.and(d2));
    }
 
-   private BinaryDecisionDiagram merge(
-         final BinaryDecisionDiagram diagram,
-         final BiFunction<BinaryDecisionDiagram, BinaryDecisionDiagram, BinaryDecisionDiagram> merge) {
-      if (diagram instanceof BinaryDecisionDiagramLeaf) {
+   private DecisionDiagram merge(
+         final DecisionDiagram diagram,
+         final BiFunction<DecisionDiagram, DecisionDiagram, DecisionDiagram> merge) {
+      if (diagram instanceof DecisionDiagramLeaf) {
          return merge.apply(diagram, this);
       }
 
-      BinaryDecisionDiagramNode otherNode = (BinaryDecisionDiagramNode) diagram;
+      DecisionDiagramNode otherNode = (DecisionDiagramNode) diagram;
 
       if (primaryVariable.equals(otherNode.primaryVariable)) {
-         BinaryDecisionDiagram mergedTrue =
+         DecisionDiagram mergedTrue =
             merge.apply(trueBranch, otherNode.trueBranch.assume(primaryVariable, true));
-         BinaryDecisionDiagram mergedFalse =
+         DecisionDiagram mergedFalse =
             merge.apply(falseBranch, otherNode.falseBranch.assume(primaryVariable, false));
 
          if (canSimplify(mergedTrue, mergedFalse)) {
             return mergedTrue;
          }
 
-         return new BinaryDecisionDiagramNode(
+         return new DecisionDiagramNode(
             primaryVariable,
             variables,
             mergedTrue,
             mergedFalse);
       }
 
-      BinaryDecisionDiagram mergedTrue =
+      DecisionDiagram mergedTrue =
          merge.apply(trueBranch, otherNode.assume(primaryVariable, true));
-      BinaryDecisionDiagram mergedFalse =
+      DecisionDiagram mergedFalse =
          merge.apply(falseBranch, otherNode.assume(primaryVariable, false));
 
       if (canSimplify(mergedTrue, mergedFalse)) {
          return mergedTrue;
       }
 
-      return new BinaryDecisionDiagramNode(
+      return new DecisionDiagramNode(
          primaryVariable,
          ImmutableSet.<SATVariable> builder()
             .addAll(variables)
@@ -90,8 +90,8 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
          mergedFalse);
    }
 
-   public BinaryDecisionDiagram not() {
-      return new BinaryDecisionDiagramNode(
+   public DecisionDiagram not() {
+      return new DecisionDiagramNode(
          primaryVariable,
          variables,
          trueBranch.not(),
@@ -103,12 +103,12 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
          return trueBranch.satisfies(variables) || falseBranch.satisfies(variables);
       }
 
-      BinaryDecisionDiagram branch = variables.get(primaryVariable) ? trueBranch : falseBranch;
+      DecisionDiagram branch = variables.get(primaryVariable) ? trueBranch : falseBranch;
 
       return branch.satisfies(variables);
    }
 
-   public BinaryDecisionDiagram assume(final SATVariable variable, final Boolean value) {
+   public DecisionDiagram assume(final SATVariable variable, final Boolean value) {
       if (!variables.contains(variable)) {
          return this;
       }
@@ -117,13 +117,13 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
          return value ? trueBranch : falseBranch;
       }
 
-      BinaryDecisionDiagram trueBranchAssumed = trueBranch.assume(variable, value);
-      BinaryDecisionDiagram falsedBranchAssumed = falseBranch.assume(variable, value);
+      DecisionDiagram trueBranchAssumed = trueBranch.assume(variable, value);
+      DecisionDiagram falsedBranchAssumed = falseBranch.assume(variable, value);
       if (canSimplify(trueBranchAssumed, falsedBranchAssumed)) {
          return trueBranchAssumed;
       }
 
-      return new BinaryDecisionDiagramNode(
+      return new DecisionDiagramNode(
            primaryVariable,
            variables.stream()
               .filter(v -> !v.equals(variable))
@@ -133,10 +133,10 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
    }
 
    private boolean canSimplify(
-         final BinaryDecisionDiagram d1,
-         final BinaryDecisionDiagram d2) {
-      return d1 instanceof BinaryDecisionDiagramLeaf
-         && d2 instanceof BinaryDecisionDiagramLeaf
+         final DecisionDiagram d1,
+         final DecisionDiagram d2) {
+      return d1 instanceof DecisionDiagramLeaf
+         && d2 instanceof DecisionDiagramLeaf
          && d1 == d2;
    }
 
@@ -146,11 +146,11 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
          return true;
       }
 
-      if (o == null || !(o instanceof BinaryDecisionDiagramNode)) {
+      if (o == null || !(o instanceof DecisionDiagramNode)) {
          return false;
       }
 
-      BinaryDecisionDiagramNode other = (BinaryDecisionDiagramNode) o;
+      DecisionDiagramNode other = (DecisionDiagramNode) o;
       return
          primaryVariable.equals(other.primaryVariable)
             && variables.equals(other.variables)
@@ -161,7 +161,7 @@ public class BinaryDecisionDiagramNode implements BinaryDecisionDiagram {
    @Override
    public String toString() {
       return String.format(
-            "[%s, true: %s, false: %s]",
+            "{\"%s\": {\"true\": %s, \"false\": %s}}",
             primaryVariable,
             trueBranch,
             falseBranch);
