@@ -7,14 +7,13 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * A decision diagram representing a boolean equation. This diagram attempts to simplify
  * its structure when it can by removing variables from the diagram 
  */
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
 public class DecisionDiagramNode implements DecisionDiagram {
 
    private final SATVariable primaryVariable;
@@ -98,14 +97,30 @@ public class DecisionDiagramNode implements DecisionDiagram {
          falseBranch.not());
    }
 
-   public boolean satisfies(final Map<SATVariable, Boolean> variables) {
-      if (!variables.containsKey(primaryVariable)) {
-         return trueBranch.satisfies(variables) || falseBranch.satisfies(variables);
+   public boolean satisfies(final Map<SATVariable, Boolean> assignment) {
+      // This tree cannot possibly be satisfied if the assignment is empty
+      if (assignment.isEmpty()) {
+         return false;
       }
 
-      DecisionDiagram branch = variables.get(primaryVariable) ? trueBranch : falseBranch;
+      // Or if it doesn't contain this node's variable!
+      if (!assignment.containsKey(primaryVariable)) {
+         return false;
+      }
 
-      return branch.satisfies(variables);
+      DecisionDiagram branch = assignment.get(primaryVariable) ? trueBranch : falseBranch;
+
+      // If the assignment does contain the variable, remove it from the assignment
+      // and recursively check the branch children
+      Map<SATVariable, Boolean> reducedAssignment =
+         assignment.keySet()
+            .stream()
+            .filter(k -> !primaryVariable.equals(k))
+            .collect(Collectors.toMap(
+               k -> k,
+               assignment::get));
+
+      return branch.satisfies(reducedAssignment);
    }
 
    public DecisionDiagram assume(final SATVariable variable, final Boolean value) {
@@ -158,6 +173,9 @@ public class DecisionDiagramNode implements DecisionDiagram {
             && falseBranch.equals(other.falseBranch);
    }
 
+   /**
+    * Provides a JSON string representation to easily use in debugging.
+    */
    @Override
    public String toString() {
       return String.format(

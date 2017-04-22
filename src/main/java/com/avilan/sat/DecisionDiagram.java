@@ -6,8 +6,7 @@ import java.util.Map;
  * A data structure which represents a boolean function.
  * {@link https://en.wikipedia.org/wiki/Binary_decision_diagram}
  *
- * Due to the ordering of variables within a diagram, any logical operation on them
- * is not guaranteed to be associative.
+ * Commutativity is not guaranteed on any compositional interface.
  */
 public interface DecisionDiagram {
    /**
@@ -40,7 +39,8 @@ public interface DecisionDiagram {
    public DecisionDiagram assume(final SATVariable variable, final Boolean value);
 
    /**
-    * Determines if this diagram satisfies the assignment of variables and values.
+    * Determines if assignment contains an assignment of variables which satisfies
+    * this diagram.
     */
-   public boolean satisfies(final Map<SATVariable, Boolean> values);
+   public boolean satisfies(final Map<SATVariable, Boolean> assignment);
 }
