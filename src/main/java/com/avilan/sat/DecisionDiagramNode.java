@@ -7,13 +7,14 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 /**
  * A decision diagram representing a boolean equation. This diagram attempts to simplify
  * its structure when it can by removing variables from the diagram 
  */
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class DecisionDiagramNode implements DecisionDiagram {
 
    private final SATVariable primaryVariable;
