@@ -13,18 +13,18 @@ import com.google.common.collect.ImmutableMap;
 
 public class CNFParserTest {
 
-	@Test
-	public void testParse() throws IOException {
-		assertTrue(CNFParser.fromFile(Paths.get("cnf/simple.cnf"))
-				.satisfies(ImmutableMap.of(
-						"x1", true,
-						"x2", true,
-						"x3", false,
-						"x4", true,
-						"x5", true).entrySet().stream()
-						.collect(Collectors.toMap(
-								entry -> new SATVariable(entry.getKey()),
-								entry -> entry.getValue()))));
-	}
+   @Test
+   public void testParse() throws IOException {
+      assertTrue(CNFParser.fromFile(Paths.get("cnf/simple.cnf"))
+            .satisfies(ImmutableMap.of(
+                  "x1", true,
+                  "x2", true,
+                  "x3", false,
+                  "x4", true,
+                  "x5", true).entrySet().stream()
+                  .collect(Collectors.toMap(
+                        entry -> new SATVariable(entry.getKey()),
+                        entry -> entry.getValue()))));
+   }
 
 }
