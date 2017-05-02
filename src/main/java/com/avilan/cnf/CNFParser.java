@@ -78,8 +78,8 @@ public class CNFParser {
                   topLevel = currentStatement;
                } else if (currentStatement != null) {
                   topLevel = topLevel.and(currentStatement);
-                  currentStatement = null;
                }
+               currentStatement = null;
                numClauses--;
             } else {
                DecisionDiagram current = DecisionDiagramNode
