@@ -6,9 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Scanner;
 
-import com.avilan.sat.DecisionDiagram;
-import com.avilan.sat.DecisionDiagramNode;
-import com.avilan.sat.SATVariable;
+import com.csc530.sat.DecisionDiagram;
+import com.csc530.sat.DecisionDiagramNode;
+import com.csc530.sat.SATVariable;
 
 /**
  * This class parses stat problem expressed in conjuctive normal form to a

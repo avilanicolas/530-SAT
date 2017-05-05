@@ -1,4 +1,4 @@
-package com.avilan.sat;
+package com.csc530.sat;
 
 import lombok.AllArgsConstructor;
 

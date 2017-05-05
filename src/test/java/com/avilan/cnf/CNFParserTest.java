@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-import com.avilan.sat.DecisionDiagram;
-import com.avilan.sat.DecisionDiagramNode;
-import com.avilan.sat.SATVariable;
+import com.csc530.sat.DecisionDiagram;
+import com.csc530.sat.DecisionDiagramNode;
+import com.csc530.sat.SATVariable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
@@ -35,7 +35,7 @@ public class CNFParserTest {
             "x1", true,
             "x2", true,
             "x3", false,
-            "x4", true,
+            "x4", false,
             "x5", true).entrySet().stream()
             .collect(Collectors.toMap(
                   entry -> new SATVariable(entry.getKey()),

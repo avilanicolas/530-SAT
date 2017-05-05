@@ -1,6 +1,9 @@
-package com.avilan.sat;
+package com.csc530.sat;
 
 import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.ImmutableSet;
 
 public enum DecisionDiagramLeaf implements DecisionDiagram {
    SATISFIABLE,
@@ -41,5 +44,10 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
    @Override
    public String toString() {
       return "\"" + name() + "\"";
+   }
+
+   @Override
+   public Set<Map<SATVariable, Boolean>> satisifyAll() {
+      return ImmutableSet.of();
    }
 }

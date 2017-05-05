@@ -1,6 +1,7 @@
-package com.avilan.sat;
+package com.csc530.sat;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A data structure which represents a boolean function.
@@ -43,4 +44,20 @@ public interface DecisionDiagram {
     * this diagram.
     */
    public boolean satisfies(final Map<SATVariable, Boolean> assignment);
+   
+   /**
+    * Finds all the possible cases that satisfy this boolean equation.
+    * Note that not all variables my be mapped in this representation,
+    * for mappings that contain less than the number or variables the variables that are not present
+    * do not matter (i.e. they may be either true or false)
+    * 
+    * 
+    * @return all possible mappings of the enclosed sat variables that satisfy the boolean condition represented herein
+    */
+   public Set<Map<SATVariable, Boolean>> satisifyAll();
+
+
+   public default DecisionDiagram xor(final DecisionDiagram other) {
+      return and(other.not()).or(other.and(not()));
+   }
 }

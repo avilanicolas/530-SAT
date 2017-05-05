@@ -1,6 +1,6 @@
 package com.avilan.sat;
 
-import static com.avilan.sat.DecisionDiagramLeaf.SATISFIABLE;
+import static com.csc530.sat.DecisionDiagramLeaf.SATISFIABLE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -9,6 +9,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.csc530.sat.DecisionDiagram;
+import com.csc530.sat.DecisionDiagramNode;
+import com.csc530.sat.SATVariable;
 import com.google.common.collect.ImmutableMap;
 
 public class DecisionDiagramTest {
