@@ -21,9 +21,17 @@ public interface DecisionDiagram {
     public DecisionDiagram and(final DecisionDiagram diagram);
 
     /**
+     * Performs a logical xor of this diagram with another
+     */
+    public default DecisionDiagram xor(final DecisionDiagram other) {
+        return and(other.not()).or(other.and(not()));
+    }
+
+    /**
      * Performs a logical negation on this diagram.
      */
     public DecisionDiagram not();
+
 
     /**
      * Constrains a diagram by assuming a value for a variable possibly within
@@ -56,8 +64,4 @@ public interface DecisionDiagram {
      *         the boolean condition represented herein
      */
     public Set<Map<SATVariable, Boolean>> satisifyAll();
-
-    public default DecisionDiagram xor(final DecisionDiagram other) {
-        return and(other.not()).or(other.and(not()));
-    }
 }
