@@ -12,7 +12,7 @@ public class App {
         } else {
             try {
                 System.out.println("System is satifisable when");
-                CNFParser.fromFile(Paths.get(args[0])).satisifyAll().stream()
+                CNFParser.fromFile(Paths.get(args[0])).satisifyAll()
                         .forEach(System.out::println);
 
             } catch (Exception e) {

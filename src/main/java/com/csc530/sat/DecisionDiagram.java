@@ -1,7 +1,7 @@
 package com.csc530.sat;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A data structure which represents a boolean function.
@@ -63,5 +63,5 @@ public interface DecisionDiagram {
      * @return all possible mappings of the enclosed sat variables that satisfy
      *         the boolean condition represented herein
      */
-    public Set<Map<SATVariable, Boolean>> satisifyAll();
+    public Stream<Map<SATVariable, Boolean>> satisifyAll();
 }

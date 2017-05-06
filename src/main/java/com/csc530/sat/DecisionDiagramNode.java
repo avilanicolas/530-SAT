@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -160,8 +161,8 @@ public class DecisionDiagramNode implements DecisionDiagram {
     }
 
     @Override
-    public Set<Map<SATVariable, Boolean>> satisifyAll() {
-        ImmutableSet.Builder<Map<SATVariable, Boolean>> builder = ImmutableSet.builder();
+    public Stream<Map<SATVariable, Boolean>> satisifyAll() {
+        Stream.Builder<Map<SATVariable, Boolean>> builder = Stream.builder();
         if (trueBranch instanceof DecisionDiagramLeaf) {
             if (((DecisionDiagramLeaf) trueBranch)
                     .equals(DecisionDiagramLeaf.SATISFIABLE)) {

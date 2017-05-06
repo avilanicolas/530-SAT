@@ -1,9 +1,7 @@
 package com.csc530.sat;
 
 import java.util.Map;
-import java.util.Set;
-
-import com.google.common.collect.ImmutableSet;
+import java.util.stream.Stream;
 
 public enum DecisionDiagramLeaf implements DecisionDiagram {
     SATISFIABLE, UNSATISFIABLE;
@@ -46,7 +44,7 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
     }
 
     @Override
-    public Set<Map<SATVariable, Boolean>> satisifyAll() {
-        return ImmutableSet.of();
+    public Stream<Map<SATVariable, Boolean>> satisifyAll() {
+        return Stream.empty();
     }
 }
