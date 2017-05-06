@@ -6,48 +6,47 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 public enum DecisionDiagramLeaf implements DecisionDiagram {
-   SATISFIABLE,
-   UNSATISFIABLE;
+    SATISFIABLE, UNSATISFIABLE;
 
-   public DecisionDiagram or(final DecisionDiagram diagram) {
-      if (this == SATISFIABLE) {
-         return SATISFIABLE;
-      }
+    public DecisionDiagram or(final DecisionDiagram diagram) {
+        if (this == SATISFIABLE) {
+            return SATISFIABLE;
+        }
 
-      return diagram;
-   }
+        return diagram;
+    }
 
-   public DecisionDiagram and(final DecisionDiagram diagram) {
-      if (this == SATISFIABLE) {
-         return diagram;
-      }
+    public DecisionDiagram and(final DecisionDiagram diagram) {
+        if (this == SATISFIABLE) {
+            return diagram;
+        }
 
-      return UNSATISFIABLE;
-   }
-   
-   public DecisionDiagram not() {
-      if (this == SATISFIABLE) {
-         return UNSATISFIABLE;
-      }
+        return UNSATISFIABLE;
+    }
 
-      return SATISFIABLE;
-   }
+    public DecisionDiagram not() {
+        if (this == SATISFIABLE) {
+            return UNSATISFIABLE;
+        }
 
-   public boolean satisfies(final Map<SATVariable, Boolean> values) {
-      return this == SATISFIABLE;
-   }
+        return SATISFIABLE;
+    }
 
-   public DecisionDiagram assume(SATVariable variable, Boolean value) {
-      return this;
-   }
+    public boolean satisfies(final Map<SATVariable, Boolean> values) {
+        return this == SATISFIABLE;
+    }
 
-   @Override
-   public String toString() {
-      return "\"" + name() + "\"";
-   }
+    public DecisionDiagram assume(SATVariable variable, Boolean value) {
+        return this;
+    }
 
-   @Override
-   public Set<Map<SATVariable, Boolean>> satisifyAll() {
-      return ImmutableSet.of();
-   }
+    @Override
+    public String toString() {
+        return "\"" + name() + "\"";
+    }
+
+    @Override
+    public Set<Map<SATVariable, Boolean>> satisifyAll() {
+        return ImmutableSet.of();
+    }
 }
