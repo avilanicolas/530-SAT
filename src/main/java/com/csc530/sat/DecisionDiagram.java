@@ -58,10 +58,14 @@ public interface DecisionDiagram {
      * that not all variables my be mapped in this representation, for mappings
      * that contain less than the number or variables the variables that are not
      * present do not matter (i.e. they may be either true or false)
-     * 
-     * 
+     *
+     *
      * @return all possible mappings of the enclosed sat variables that satisfy
      *         the boolean condition represented herein
      */
     public Stream<Map<SATVariable, Boolean>> satisifyAll();
+
+    public default boolean isSatisfiable() {
+        return satisifyAll().findAny().isPresent();
+    }
 }
