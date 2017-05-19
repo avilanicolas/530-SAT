@@ -34,10 +34,12 @@ public class DecisionDiagramNode implements DecisionDiagram {
                 DecisionDiagramLeaf.SATISFIABLE, DecisionDiagramLeaf.UNSATISFIABLE);
     }
 
+    @Override
     public DecisionDiagram or(final DecisionDiagram diagram) {
         return merge(diagram, (d1, d2) -> d1.or(d2));
     }
 
+    @Override
     public DecisionDiagram and(final DecisionDiagram diagram) {
         return merge(diagram, (d1, d2) -> d1.and(d2));
     }
@@ -79,11 +81,13 @@ public class DecisionDiagramNode implements DecisionDiagram {
                 mergedTrue, mergedFalse);
     }
 
+    @Override
     public DecisionDiagram not() {
         return new DecisionDiagramNode(primaryVariable, variables, trueBranch.not(),
                 falseBranch.not());
     }
 
+    @Override
     public boolean satisfies(final Map<SATVariable, Boolean> assignment) {
         // This tree cannot possibly be satisfied if the assignment is empty
         if (assignment.isEmpty()) {
@@ -108,6 +112,7 @@ public class DecisionDiagramNode implements DecisionDiagram {
         return branch.satisfies(reducedAssignment);
     }
 
+    @Override
     public DecisionDiagram assume(final SATVariable variable, final Boolean value) {
         if (!variables.contains(variable)) {
             return this;
@@ -187,5 +192,10 @@ public class DecisionDiagramNode implements DecisionDiagram {
                             .put(primaryVariable, false).putAll(sat).build()));
         }
         return builder.build();
+    }
+
+    @Override
+    public boolean isSatisfiable() {
+        return true;
     }
 }

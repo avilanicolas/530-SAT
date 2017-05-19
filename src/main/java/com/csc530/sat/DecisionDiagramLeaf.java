@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 public enum DecisionDiagramLeaf implements DecisionDiagram {
     SATISFIABLE, UNSATISFIABLE;
 
+    @Override
     public DecisionDiagram or(final DecisionDiagram diagram) {
         if (this == SATISFIABLE) {
             return SATISFIABLE;
@@ -14,6 +15,7 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
         return diagram;
     }
 
+    @Override
     public DecisionDiagram and(final DecisionDiagram diagram) {
         if (this == SATISFIABLE) {
             return diagram;
@@ -22,6 +24,7 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
         return UNSATISFIABLE;
     }
 
+    @Override
     public DecisionDiagram not() {
         if (this == SATISFIABLE) {
             return UNSATISFIABLE;
@@ -30,10 +33,12 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
         return SATISFIABLE;
     }
 
+    @Override
     public boolean satisfies(final Map<SATVariable, Boolean> values) {
         return this == SATISFIABLE;
     }
 
+    @Override
     public DecisionDiagram assume(SATVariable variable, Boolean value) {
         return this;
     }
@@ -46,5 +51,10 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
     @Override
     public Stream<Map<SATVariable, Boolean>> satisifyAll() {
         return Stream.empty();
+    }
+
+    @Override
+    public boolean isSatisfiable() {
+        return this == SATISFIABLE;
     }
 }
