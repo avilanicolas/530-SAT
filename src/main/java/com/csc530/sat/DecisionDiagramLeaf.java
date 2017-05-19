@@ -52,9 +52,4 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
     public Stream<Map<SATVariable, Boolean>> satisifyAll() {
         return Stream.empty();
     }
-
-    @Override
-    public boolean isSatisfiable() {
-        return this == SATISFIABLE;
-    }
 }

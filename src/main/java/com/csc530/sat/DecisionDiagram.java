@@ -65,5 +65,7 @@ public interface DecisionDiagram {
      */
     public Stream<Map<SATVariable, Boolean>> satisifyAll();
 
-    public boolean isSatisfiable();
+    public default boolean isSatisfiable() {
+        return this != DecisionDiagramLeaf.UNSATISFIABLE;
+    }
 }

@@ -193,9 +193,4 @@ public class DecisionDiagramNode implements DecisionDiagram {
         }
         return builder.build();
     }
-
-    @Override
-    public boolean isSatisfiable() {
-        return true;
-    }
 }
