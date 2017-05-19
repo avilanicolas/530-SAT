@@ -1,8 +1,8 @@
 package com.csc530.smtlib;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class SmtLibRunnerTest {
@@ -10,100 +10,60 @@ public class SmtLibRunnerTest {
     private static final String SATISFIABLE = "sat";
     private static final String UNSATISFIABLE = "unsat";
 
-    @Test
-    public void testBooleanDeclaration() {
-        SmtLibRunner runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(declare-fun c () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            runner.runSmtLibCommand("(assert c)");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
+    private SmtLibRunner runner;
+
+    @Before
+    public void initialize() throws Exception {
+        runner = new SmtLibRunner();
+        runner.runSmtLibCommand("(declare-fun t () Bool)");
+        runner.runSmtLibCommand("(declare-fun f () Bool)");
+        runner.runSmtLibCommand("(assert t)");
+        runner.runSmtLibCommand("(assert (not f))");
     }
 
     @Test
-    public void testSimpleBooleanFunctions() {
-        SmtLibRunner runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            runner.runSmtLibCommand("(assert (and a b))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
-
-        runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            runner.runSmtLibCommand("(assert (or a b))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
-
-        runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            runner.runSmtLibCommand("(assert (xor a b))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
+    public void testBaseline() throws Exception {
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
     }
 
     @Test
-    public void testOtherBooleanFunctions() {
-        SmtLibRunner runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            runner.runSmtLibCommand("(assert (=> a b))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
+    public void testDeclarations() throws Exception {
+        runner.runSmtLibCommand("(declare-fun c () Bool)");
+        runner.runSmtLibCommand("(assert c)");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
+    }
 
-        runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            runner.runSmtLibCommand("(assert (ite a (not a) a))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
+    @Test
+    public void testAnd() throws Exception {
+        runner.runSmtLibCommand("(assert (and t f))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
+    }
 
-        runner = new SmtLibRunner();
-        try {
-            runner.runSmtLibCommand("(declare-fun a () Bool)");
-            runner.runSmtLibCommand("(declare-fun b () Bool)");
-            runner.runSmtLibCommand("(assert a)");
-            runner.runSmtLibCommand("(assert (not b))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
-            runner.runSmtLibCommand("(assert (=> b a))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
-            runner.runSmtLibCommand("(assert (=> a b))");
-            assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
-        } catch (Exception ex) {
-            fail(ex.getMessage());
-        }
+    @Test
+    public void testOr() throws Exception {
+        runner.runSmtLibCommand("(assert (or t f))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
+    }
+
+    @Test
+    public void testXor() throws Exception {
+        runner.runSmtLibCommand("(assert (xor t f))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
+    }
+
+    @Test
+    public void testImplies() throws Exception {
+        runner.runSmtLibCommand("(assert (=> f t))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
+        runner.runSmtLibCommand("(assert (=> t f))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
+    }
+
+    @Test
+    public void testIte() throws Exception {
+        runner.runSmtLibCommand("(assert (ite f t t))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), SATISFIABLE);
+        runner.runSmtLibCommand("(assert (ite t (not t) t))");
+        assertEquals(runner.runSmtLibCommand("(check-sat)"), UNSATISFIABLE);
     }
 }

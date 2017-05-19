@@ -29,7 +29,7 @@ public class SmtLibRunner {
         return smt.smtConfig.defaultPrinter.toString(result);
     }
 
-    /* Interactively runs the smt-lib parser */
+    /** Interactively runs the smt-lib parser */
     public void runSmtLibInteractive() throws IOException, IParser.ParserException {
         ISource source = smt.smtConfig.smtFactory.createSource(smt.smtConfig, System.in, null);
         IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig,source);
@@ -40,7 +40,7 @@ public class SmtLibRunner {
         }
     }
 
-    /* Runs all commands from a file. Prints results to stdout */
+    /** Runs all commands from a file. Prints results to stdout */
     public void runSmtLibFile(Path filePath) throws IOException, IParser.ParserException {
         ISource source = smt.smtConfig.smtFactory.createSource(smt.smtConfig, new File(filePath.toUri()));
         IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig,source);
@@ -53,7 +53,7 @@ public class SmtLibRunner {
         }
     }
 
-    /* Runs a single SMT-LIB command, and returns the result */
+    /** Runs a single SMT-LIB command, and returns the result */
     public String runSmtLibCommand(String command) throws IOException, IParser.ParserException {
         ISource source = smt.smtConfig.smtFactory.createSource(
                 new CharSequenceReader(new java.io.StringReader(command)), null);
@@ -66,11 +66,5 @@ public class SmtLibRunner {
         }
 
         return runCommand(smtLibCommand);
-    }
-
-    public static void main(String[] args) throws IOException, IParser.ParserException {
-        SmtLibRunner parser = new SmtLibRunner();
-        parser.runSmtLibInteractive();
-        // parser.runSmtLibFile(Paths.get("smt_lib_files/qf_uf_test_satisfiable.txt"));
     }
 }
