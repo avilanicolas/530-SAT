@@ -7,49 +7,49 @@ import com.csc530.sat.type.DDType;
 
 @SuppressWarnings("rawtypes")
 public enum DecisionDiagramLeaf implements DecisionDiagram {
-   SATISFIABLE, UNSATISFIABLE;
+    SATISFIABLE, UNSATISFIABLE;
 
-   @Override
-   public DecisionDiagram or(DecisionDiagram diagram) {
-      if (this == SATISFIABLE) {
-         return SATISFIABLE;
-      }
-      return diagram;
-   }
+    @Override
+    public DecisionDiagram or(DecisionDiagram diagram) {
+        if (this == SATISFIABLE) {
+            return SATISFIABLE;
+        }
+        return diagram;
+    }
 
-   @Override
-   public DecisionDiagram and(DecisionDiagram diagram) {
-      if (this == SATISFIABLE) {
-         return diagram;
-      }
-      return UNSATISFIABLE;
-   }
+    @Override
+    public DecisionDiagram and(DecisionDiagram diagram) {
+        if (this == SATISFIABLE) {
+            return diagram;
+        }
+        return UNSATISFIABLE;
+    }
 
-   @Override
-   public DecisionDiagram not() {
-      if (this == SATISFIABLE) {
-         return UNSATISFIABLE;
-      }
-      return SATISFIABLE;
-   }
+    @Override
+    public DecisionDiagram not() {
+        if (this == SATISFIABLE) {
+            return UNSATISFIABLE;
+        }
+        return SATISFIABLE;
+    }
 
-   @Override
-   public DecisionDiagram assume(SMTVariable variable, DDType value) {
-      return this;
-   }
+    @Override
+    public DecisionDiagram assume(SMTVariable variable, DDType value) {
+        return this;
+    }
 
-   @Override
-   public boolean satisfies(Map<SMTVariable, DDType> assignment) {
-      return this == SATISFIABLE;
-   }
+    @Override
+    public boolean satisfies(Map<SMTVariable, DDType> assignment) {
+        return this == SATISFIABLE;
+    }
 
-   @Override
-   public String toString() {
-      return "\"" + name() + "\"";
-   }
+    @Override
+    public String toString() {
+        return "\"" + name() + "\"";
+    }
 
-   @Override
-   public Stream<Map<SMTVariable, DDType>> satisifyAll() {
-      return Stream.empty();
-   }
+    @Override
+    public Stream<Map<SMTVariable, DDType>> satisifyAll() {
+        return Stream.empty();
+    }
 }

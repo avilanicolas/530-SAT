@@ -12,8 +12,8 @@ import org.smtlib.ISource;
 import org.smtlib.SMT;
 
 /**
- * This class uses the jSMTLIB library to run SMT-LIB commands with the DecisionDiagram
- * data structure working as a backend.
+ * This class uses the jSMTLIB library to run SMT-LIB commands with the
+ * DecisionDiagram data structure working as a backend.
  */
 public class SmtLibRunner {
     private final SMT smt;
@@ -31,8 +31,9 @@ public class SmtLibRunner {
 
     /** Interactively runs the smt-lib parser */
     public void runSmtLibInteractive() throws IOException, IParser.ParserException {
-        ISource source = smt.smtConfig.smtFactory.createSource(smt.smtConfig, System.in, null);
-        IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig,source);
+        ISource source = smt.smtConfig.smtFactory.createSource(smt.smtConfig, System.in,
+                null);
+        IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig, source);
 
         while (!parser.isEOD()) {
             ICommand command = parser.parseCommand();
@@ -42,8 +43,9 @@ public class SmtLibRunner {
 
     /** Runs all commands from a file. Prints results to stdout */
     public void runSmtLibFile(Path filePath) throws IOException, IParser.ParserException {
-        ISource source = smt.smtConfig.smtFactory.createSource(smt.smtConfig, new File(filePath.toUri()));
-        IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig,source);
+        ISource source = smt.smtConfig.smtFactory.createSource(smt.smtConfig,
+                new File(filePath.toUri()));
+        IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig, source);
 
         while (!parser.isEOD()) {
             ICommand command = parser.parseCommand();
@@ -54,10 +56,11 @@ public class SmtLibRunner {
     }
 
     /** Runs a single SMT-LIB command, and returns the result */
-    public String runSmtLibCommand(String command) throws IOException, IParser.ParserException {
+    public String runSmtLibCommand(String command)
+            throws IOException, IParser.ParserException {
         ISource source = smt.smtConfig.smtFactory.createSource(
                 new CharSequenceReader(new java.io.StringReader(command)), null);
-        IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig,source);
+        IParser parser = smt.smtConfig.smtFactory.createParser(smt.smtConfig, source);
 
         ICommand smtLibCommand = parser.parseCommand();
 

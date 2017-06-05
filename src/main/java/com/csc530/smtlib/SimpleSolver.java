@@ -21,8 +21,8 @@ import org.smtlib.SMT.Configuration;
 import com.csc530.sat.DecisionDiagram;
 
 /**
- * This class exists purely to interface with the jSMTLIB parsing library.
- * It should only be used by the SmtLibParser class.
+ * This class exists purely to interface with the jSMTLIB parsing library. It
+ * should only be used by the SmtLibParser class.
  */
 class SimpleSolver implements ISolver {
 
@@ -113,7 +113,8 @@ class SimpleSolver implements ISolver {
         }
 
         if (currentDiagram == null) {
-            return smtConfig.responseFactory.error("No assertions statements found to check for satisfiability");
+            return smtConfig.responseFactory
+                    .error("No assertions statements found to check for satisfiability");
         }
 
         if (currentDiagram.isSatisfiable()) {
@@ -126,11 +127,13 @@ class SimpleSolver implements ISolver {
     @Override
     public IResponse declare_fun(Ideclare_fun cmd) {
         if (!cmd.argSorts().isEmpty()) {
-            throw new UnsupportedOperationException("Functions with parameters are not yet implemented");
+            throw new UnsupportedOperationException(
+                    "Functions with parameters are not yet implemented");
         }
 
         if (!cmd.resultSort().isBool()) {
-            throw new UnsupportedOperationException("Functions with a non-boolean return type are not yet implemented");
+            throw new UnsupportedOperationException(
+                    "Functions with a non-boolean return type are not yet implemented");
         }
 
         booleanVariables.add(cmd.symbol().value());
