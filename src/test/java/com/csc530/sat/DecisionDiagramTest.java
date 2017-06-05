@@ -31,6 +31,7 @@ public class DecisionDiagramTest {
       assertEquals(SATISFIABLE, xDiagram.or(xDiagram.not()));
       assertEquals(xDiagram.or(yDiagram), xDiagram.or(yDiagram.and(xDiagram.not())));
 
+
       SMTVariable isItRainingVar = new SMTVariable("isItRaining?", Boolean.class);
       SMTVariable iHaveAnUmbrellaVar = new SMTVariable("iHaveAnUmbrella", Boolean.class);
 
@@ -41,10 +42,6 @@ public class DecisionDiagramTest {
 
       System.out.println(isItRaining.not().or(iHaveAnUmbrella));
    }
-
-//   private DecisionDiagram xor(DecisionDiagram a, DecisionDiagram b) {
-//      return a.and(b.not()).or(b.and(a.not()));
-//   }
 
    @Test
    public void testContains() {

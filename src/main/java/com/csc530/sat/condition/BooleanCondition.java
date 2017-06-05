@@ -7,22 +7,25 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import com.csc530.sat.type.BooleanDDType;
 import com.csc530.sat.type.DDType;
+import com.google.common.base.Preconditions;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 
-@Builder(toBuilder=true)
+@Builder(
+      toBuilder = true)
 @AllArgsConstructor
 public class BooleanCondition implements DDCondition<Boolean> {
    private Function<Boolean, Boolean> truthy;
    private Boolean satisifier;
-   
+
    public static BooleanCondition isTrue() {
       return new BooleanCondition(b -> b, true);
    }
 
    @Override
    public boolean satisifies(DDType<Boolean> value) {
+      Preconditions.checkState(truthy.apply(satisifier) == true, "Invalid state");
       return truthy.apply(value.getValue());
    }
 
@@ -55,14 +58,16 @@ public class BooleanCondition implements DDCondition<Boolean> {
    public DDCondition<Boolean> and(DDCondition<Boolean> other) {
       return toBuilder()
             .truthy(b -> truthy.apply(b) && other.satisifies(BooleanDDType.valueOf(b)))
+            .satisifier(truthy.apply(satisifier)
+                  && other.satisifies(BooleanDDType.valueOf(satisifier)) ? satisifier
+                        : !satisifier)
             .build();
    }
-   
+
    @Override
    public String toString() {
       return satisifier.toString();
    }
-   
 
    @Override
    public boolean equals(Object o) {
@@ -82,7 +87,7 @@ public class BooleanCondition implements DDCondition<Boolean> {
             .append(satisifier, other.satisifier)
             .isEquals();
    }
-   
+
    @Override
    public int hashCode() {
       return new HashCodeBuilder()

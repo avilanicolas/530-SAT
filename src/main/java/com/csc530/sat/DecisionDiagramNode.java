@@ -38,41 +38,25 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
    public static DecisionDiagramNode of(final SMTVariable variable,
          final LinkedHashSet<SMTVariable<?>> variables, final DDCondition condition) {
       return new DecisionDiagramNode(variable, variables,
-            DecisionDiagramBranches.builder().condition(condition)
+            DecisionDiagramBranches.builder()
+                  .primaryVariable(variable)
+                  .condition(condition)
                   .trueBranch(DecisionDiagramLeaf.SATISFIABLE)
                   .falseBranch(DecisionDiagramLeaf.UNSATISFIABLE).build());
    }
 
-   private enum DecisionDiagramOperation {
-      OR {
-         @Override
-         public DDCondition operate(DDCondition first, DDCondition second) {
-            return first.or(second);
-         }
-      },
-      AND {
-         @Override
-         public DDCondition operate(DDCondition first, DDCondition second) {
-            return first.and(second);
-         }
-      };
-
-      public abstract DDCondition operate(DDCondition first, DDCondition second);
-   }
-
    @Override
    public DecisionDiagram or(final DecisionDiagram diagram) {
-      return merge(diagram, (d1, d2) -> d1.or(d2), DecisionDiagramOperation.OR);
+      return merge(diagram, (d1, d2) -> d1.or(d2));
    }
 
    @Override
    public DecisionDiagram and(final DecisionDiagram diagram) {
-      return merge(diagram, (d1, d2) -> d1.and(d2), DecisionDiagramOperation.AND);
+      return merge(diagram, (d1, d2) -> d1.and(d2));
    }
 
    private DecisionDiagram merge(final DecisionDiagram diagram,
-         final BiFunction<DecisionDiagram, DecisionDiagram, DecisionDiagram> merge,
-         final DecisionDiagramOperation operation) {
+         final BiFunction<DecisionDiagram, DecisionDiagram, DecisionDiagram> merge) {
       if (diagram instanceof DecisionDiagramLeaf) {
          return merge.apply(diagram, this);
       }
@@ -81,34 +65,33 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
       LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
       vars.addAll(variables);
       vars.addAll(otherNode.variables);
-      //
-      // if (primaryVariable.equals(otherNode.primaryVariable)) {
-      // DecisionDiagram mergedTrue = merge.apply(branches.getTrueBranch(),
-      // otherNode.getBranches().getTrueBranch().assume(primaryVariable,
-      // branches.getCondition().satisifier()));
-      // DecisionDiagram mergedFalse = merge.apply(branches.getFalseBranch(),
-      // otherNode.getBranches().getFalseBranch().assume(primaryVariable,
-      // branches.getCondition().unSatisifier()));
-      //
-      // if (canSimplify(mergedTrue, mergedFalse)) {
-      // return mergedTrue;
-      // }
-      //
-      // return new DecisionDiagramNode(primaryVariable, vars,
-      // branches.toBuilder()
-      // .condition(operation.operate(branches.getCondition(),
-      // otherNode.getBranches().getCondition()))
-      // .trueBranch(mergedTrue)
-      // .falseBranch(mergedFalse)
-      // .build());
-      // }
+      if (primaryVariable.equals(otherNode.primaryVariable)) {
+         DecisionDiagram mergedTrue = merge.apply(
+               branches.getTrueBranch(),
+               otherNode.getBranches().getTrueBranch()
+                     .assume(primaryVariable, branches.getCondition().satisifier()));
+         DecisionDiagram mergedFalse = merge.apply(
+               branches.getFalseBranch(),
+               otherNode.getBranches().getFalseBranch()
+                     .assume(primaryVariable, branches.getCondition().unSatisifier()));
 
-      DecisionDiagram mergedTrue = merge.apply(branches.getTrueBranch(),
-            otherNode.getBranches().getTrueBranch().assume(primaryVariable,
-                  branches.getCondition().satisifier()));
-      DecisionDiagram mergedFalse = merge.apply(branches.getFalseBranch(),
-            otherNode.getBranches().getFalseBranch().assume(primaryVariable,
-                  branches.getCondition().unSatisifier()));
+         if (canSimplify(mergedTrue, mergedFalse)) {
+            return mergedTrue;
+         }
+
+         return new DecisionDiagramNode(primaryVariable, vars,
+               branches.toBuilder()
+                     .trueBranch(mergedTrue)
+                     .falseBranch(mergedFalse)
+                     .build());
+      }
+
+      DecisionDiagram mergedTrue = merge.apply(
+            branches.getTrueBranch(),
+            otherNode.assume(primaryVariable, branches.getCondition().satisifier()));
+      DecisionDiagram mergedFalse = merge.apply(
+            branches.getFalseBranch(),
+            otherNode.assume(primaryVariable, branches.getCondition().unSatisifier()));
 
       if (canSimplify(mergedTrue, mergedFalse)) {
          return mergedTrue;
@@ -116,8 +99,6 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
 
       return new DecisionDiagramNode(primaryVariable, vars,
             branches.toBuilder()
-                  .condition(operation.operate(branches.getCondition(),
-                        otherNode.getBranches().getCondition()))
                   .trueBranch(mergedTrue)
                   .falseBranch(mergedFalse)
                   .build());
@@ -125,7 +106,10 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
 
    @Override
    public DecisionDiagram not() {
-      return new DecisionDiagramNode(primaryVariable, variables, branches.not());
+      return new DecisionDiagramNode(primaryVariable, variables, branches.toBuilder()
+            .trueBranch(branches.getTrueBranch().not())
+            .falseBranch(branches.getFalseBranch().not())
+            .build());
    }
 
    @Override
@@ -166,9 +150,11 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
             value);
       DecisionDiagram falsedBranchAssumed = branches.getFalseBranch().assume(variable,
             value);
+
       if (canSimplify(trueBranchAssumed, falsedBranchAssumed)) {
          return trueBranchAssumed;
       }
+
       LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
       variables.stream()
             .filter(v -> !v.equals(variable))
@@ -197,6 +183,9 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
       }
 
       DecisionDiagramNode other = (DecisionDiagramNode) o;
+      // System.out.println(variables);
+      // System.out.println(other.variables);
+      // System.out.println(variables.equals(other.variables));
       return primaryVariable.equals(other.primaryVariable)
             && variables.equals(other.variables)
             && branches.getTrueBranch().equals(other.getBranches().getTrueBranch())
@@ -209,7 +198,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
    @Override
    public String toString() {
       return String.format("{\"%s\": {\"true\": %s, \"false\": %s}}", primaryVariable,
-            branches.getTrueBranch(), branches.getTrueBranch());
+            branches.getTrueBranch(), branches.getFalseBranch());
    }
 
    @Override
