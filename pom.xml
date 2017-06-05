@@ -35,6 +35,11 @@
          <scope>test</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-configuration2</artifactId>
+        <version>2.1.1</version>
+      </dependency>
+      <dependency>
          <groupId>jsmtlib</groupId>
          <artifactId>com.jsmtlib</artifactId>
          <version>1.0</version>

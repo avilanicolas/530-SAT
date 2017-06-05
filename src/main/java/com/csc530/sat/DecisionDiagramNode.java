@@ -1,196 +1,247 @@
 package com.csc530.sat;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.csc530.sat.branch.DecisionDiagramBranches;
+import com.csc530.sat.condition.DDCondition;
+import com.csc530.sat.type.DDType;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
  * A decision diagram representing a boolean equation. This diagram attempts to
  * simplify its structure when it can by removing variables from the diagram
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class DecisionDiagramNode implements DecisionDiagram {
+@RequiredArgsConstructor(
+      access = AccessLevel.PRIVATE)
+@SuppressWarnings({ "rawtypes", "unchecked" })
+@Getter
+public class DecisionDiagramNode<T> implements DecisionDiagram {
+   private final SMTVariable<T> primaryVariable;
+   private final LinkedHashSet<SMTVariable<?>> variables;
+   private final DecisionDiagramBranches<T> branches;
 
-    private final SATVariable primaryVariable;
-    private final Set<SATVariable> variables;
-    private final DecisionDiagram trueBranch;
-    private final DecisionDiagram falseBranch;
+   public static DecisionDiagramNode of(final SMTVariable variable,
+         final DDCondition condition) {
+      LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
+      vars.add(variable);
+      return of(variable, vars, condition);
+   }
 
-    public static DecisionDiagramNode of(final SATVariable variable) {
-        return of(variable, ImmutableSet.of(variable));
-    }
+   public static DecisionDiagramNode of(final SMTVariable variable,
+         final LinkedHashSet<SMTVariable<?>> variables, final DDCondition condition) {
+      return new DecisionDiagramNode(variable, variables,
+            DecisionDiagramBranches.builder().condition(condition)
+                  .trueBranch(DecisionDiagramLeaf.SATISFIABLE)
+                  .falseBranch(DecisionDiagramLeaf.UNSATISFIABLE).build());
+   }
 
-    public static DecisionDiagramNode of(final SATVariable variable,
-            final Set<SATVariable> variables) {
-        return new DecisionDiagramNode(variable, variables,
-                DecisionDiagramLeaf.SATISFIABLE, DecisionDiagramLeaf.UNSATISFIABLE);
-    }
+   private enum DecisionDiagramOperation {
+      OR {
+         @Override
+         public DDCondition operate(DDCondition first, DDCondition second) {
+            return first.or(second);
+         }
+      },
+      AND {
+         @Override
+         public DDCondition operate(DDCondition first, DDCondition second) {
+            return first.and(second);
+         }
+      };
 
-    @Override
-    public DecisionDiagram or(final DecisionDiagram diagram) {
-        return merge(diagram, (d1, d2) -> d1.or(d2));
-    }
+      public abstract DDCondition operate(DDCondition first, DDCondition second);
+   }
 
-    @Override
-    public DecisionDiagram and(final DecisionDiagram diagram) {
-        return merge(diagram, (d1, d2) -> d1.and(d2));
-    }
+   @Override
+   public DecisionDiagram or(final DecisionDiagram diagram) {
+      return merge(diagram, (d1, d2) -> d1.or(d2), DecisionDiagramOperation.OR);
+   }
 
-    private DecisionDiagram merge(final DecisionDiagram diagram,
-            final BiFunction<DecisionDiagram, DecisionDiagram, DecisionDiagram> merge) {
-        if (diagram instanceof DecisionDiagramLeaf) {
-            return merge.apply(diagram, this);
-        }
+   @Override
+   public DecisionDiagram and(final DecisionDiagram diagram) {
+      return merge(diagram, (d1, d2) -> d1.and(d2), DecisionDiagramOperation.AND);
+   }
 
-        DecisionDiagramNode otherNode = (DecisionDiagramNode) diagram;
+   private DecisionDiagram merge(final DecisionDiagram diagram,
+         final BiFunction<DecisionDiagram, DecisionDiagram, DecisionDiagram> merge,
+         final DecisionDiagramOperation operation) {
+      if (diagram instanceof DecisionDiagramLeaf) {
+         return merge.apply(diagram, this);
+      }
 
-        if (primaryVariable.equals(otherNode.primaryVariable)) {
-            DecisionDiagram mergedTrue = merge.apply(trueBranch,
-                    otherNode.trueBranch.assume(primaryVariable, true));
-            DecisionDiagram mergedFalse = merge.apply(falseBranch,
-                    otherNode.falseBranch.assume(primaryVariable, false));
+      DecisionDiagramNode otherNode = (DecisionDiagramNode) diagram;
+      LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
+      vars.addAll(variables);
+      vars.addAll(otherNode.variables);
+      //
+      // if (primaryVariable.equals(otherNode.primaryVariable)) {
+      // DecisionDiagram mergedTrue = merge.apply(branches.getTrueBranch(),
+      // otherNode.getBranches().getTrueBranch().assume(primaryVariable,
+      // branches.getCondition().satisifier()));
+      // DecisionDiagram mergedFalse = merge.apply(branches.getFalseBranch(),
+      // otherNode.getBranches().getFalseBranch().assume(primaryVariable,
+      // branches.getCondition().unSatisifier()));
+      //
+      // if (canSimplify(mergedTrue, mergedFalse)) {
+      // return mergedTrue;
+      // }
+      //
+      // return new DecisionDiagramNode(primaryVariable, vars,
+      // branches.toBuilder()
+      // .condition(operation.operate(branches.getCondition(),
+      // otherNode.getBranches().getCondition()))
+      // .trueBranch(mergedTrue)
+      // .falseBranch(mergedFalse)
+      // .build());
+      // }
 
-            if (canSimplify(mergedTrue, mergedFalse)) {
-                return mergedTrue;
-            }
+      DecisionDiagram mergedTrue = merge.apply(branches.getTrueBranch(),
+            otherNode.getBranches().getTrueBranch().assume(primaryVariable,
+                  branches.getCondition().satisifier()));
+      DecisionDiagram mergedFalse = merge.apply(branches.getFalseBranch(),
+            otherNode.getBranches().getFalseBranch().assume(primaryVariable,
+                  branches.getCondition().unSatisifier()));
 
-            return new DecisionDiagramNode(primaryVariable, variables, mergedTrue,
-                    mergedFalse);
-        }
+      if (canSimplify(mergedTrue, mergedFalse)) {
+         return mergedTrue;
+      }
 
-        DecisionDiagram mergedTrue = merge.apply(trueBranch,
-                otherNode.assume(primaryVariable, true));
-        DecisionDiagram mergedFalse = merge.apply(falseBranch,
-                otherNode.assume(primaryVariable, false));
+      return new DecisionDiagramNode(primaryVariable, vars,
+            branches.toBuilder()
+                  .condition(operation.operate(branches.getCondition(),
+                        otherNode.getBranches().getCondition()))
+                  .trueBranch(mergedTrue)
+                  .falseBranch(mergedFalse)
+                  .build());
+   }
 
-        if (canSimplify(mergedTrue, mergedFalse)) {
-            return mergedTrue;
-        }
+   @Override
+   public DecisionDiagram not() {
+      return new DecisionDiagramNode(primaryVariable, variables, branches.not());
+   }
 
-        return new DecisionDiagramNode(primaryVariable,
-                ImmutableSet.<SATVariable>builder().addAll(variables)
-                        .addAll(otherNode.variables).build(),
-                mergedTrue, mergedFalse);
-    }
+   @Override
+   public boolean satisfies(final Map<SMTVariable, DDType> assignment) {
+      // This tree cannot possibly be satisfied if the assignment is empty
+      if (assignment.isEmpty()) {
+         return false;
+      }
 
-    @Override
-    public DecisionDiagram not() {
-        return new DecisionDiagramNode(primaryVariable, variables, trueBranch.not(),
-                falseBranch.not());
-    }
+      // Or if it doesn't contain this node's variable!
+      if (!assignment.containsKey(primaryVariable)) {
+         return false;
+      }
 
-    @Override
-    public boolean satisfies(final Map<SATVariable, Boolean> assignment) {
-        // This tree cannot possibly be satisfied if the assignment is empty
-        if (assignment.isEmpty()) {
-            return false;
-        }
+      DecisionDiagram branch = branches.getBranch(assignment.get(primaryVariable));
 
-        // Or if it doesn't contain this node's variable!
-        if (!assignment.containsKey(primaryVariable)) {
-            return false;
-        }
+      // If the assignment does contain the variable, remove it from the
+      // assignment
+      // and recursively check the branch children
+      Map<SMTVariable, DDType> reducedAssignment = assignment.keySet().stream()
+            .filter(k -> !primaryVariable.equals(k))
+            .collect(Collectors.toMap(k -> k, assignment::get));
 
-        DecisionDiagram branch = assignment.get(primaryVariable) ? trueBranch
-                : falseBranch;
+      return branch.satisfies(reducedAssignment);
+   }
 
-        // If the assignment does contain the variable, remove it from the
-        // assignment
-        // and recursively check the branch children
-        Map<SATVariable, Boolean> reducedAssignment = assignment.keySet().stream()
-                .filter(k -> !primaryVariable.equals(k))
-                .collect(Collectors.toMap(k -> k, assignment::get));
+   @Override
+   public DecisionDiagram assume(final SMTVariable variable, final DDType value) {
+      if (!variables.contains(variable)) {
+         return this;
+      }
 
-        return branch.satisfies(reducedAssignment);
-    }
+      if (primaryVariable.equals(variable)) {
+         return branches.getBranch(value);
+      }
 
-    @Override
-    public DecisionDiagram assume(final SATVariable variable, final Boolean value) {
-        if (!variables.contains(variable)) {
-            return this;
-        }
+      DecisionDiagram trueBranchAssumed = branches.getTrueBranch().assume(variable,
+            value);
+      DecisionDiagram falsedBranchAssumed = branches.getFalseBranch().assume(variable,
+            value);
+      if (canSimplify(trueBranchAssumed, falsedBranchAssumed)) {
+         return trueBranchAssumed;
+      }
+      LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
+      variables.stream()
+            .filter(v -> !v.equals(variable))
+            .forEach(vars::add);
 
-        if (primaryVariable.equals(variable)) {
-            return value ? trueBranch : falseBranch;
-        }
+      return new DecisionDiagramNode(primaryVariable, vars,
+            branches.toBuilder()
+                  .trueBranch(trueBranchAssumed)
+                  .falseBranch(falsedBranchAssumed)
+                  .build());
+   }
 
-        DecisionDiagram trueBranchAssumed = trueBranch.assume(variable, value);
-        DecisionDiagram falsedBranchAssumed = falseBranch.assume(variable, value);
-        if (canSimplify(trueBranchAssumed, falsedBranchAssumed)) {
-            return trueBranchAssumed;
-        }
+   private boolean canSimplify(final DecisionDiagram d1, final DecisionDiagram d2) {
+      return d1 instanceof DecisionDiagramLeaf && d2 instanceof DecisionDiagramLeaf
+            && d1 == d2;
+   }
 
-        return new DecisionDiagramNode(
-                primaryVariable, variables.stream().filter(v -> !v.equals(variable))
-                        .collect(Collectors.toSet()),
-                trueBranchAssumed, falsedBranchAssumed);
-    }
+   @Override
+   public boolean equals(Object o) {
+      if (o == this) {
+         return true;
+      }
 
-    private boolean canSimplify(final DecisionDiagram d1, final DecisionDiagram d2) {
-        return d1 instanceof DecisionDiagramLeaf && d2 instanceof DecisionDiagramLeaf
-                && d1 == d2;
-    }
+      if (o == null || !(o instanceof DecisionDiagramNode)) {
+         return false;
+      }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
+      DecisionDiagramNode other = (DecisionDiagramNode) o;
+      return primaryVariable.equals(other.primaryVariable)
+            && variables.equals(other.variables)
+            && branches.getTrueBranch().equals(other.getBranches().getTrueBranch())
+            && branches.getFalseBranch().equals(other.getBranches().getFalseBranch());
+   }
 
-        if (o == null || !(o instanceof DecisionDiagramNode)) {
-            return false;
-        }
+   /**
+   * Provides a JSON string representation to easily use in debugging.
+   */
+   @Override
+   public String toString() {
+      return String.format("{\"%s\": {\"true\": %s, \"false\": %s}}", primaryVariable,
+            branches.getTrueBranch(), branches.getTrueBranch());
+   }
 
-        DecisionDiagramNode other = (DecisionDiagramNode) o;
-        return primaryVariable.equals(other.primaryVariable)
-                && variables.equals(other.variables)
-                && trueBranch.equals(other.trueBranch)
-                && falseBranch.equals(other.falseBranch);
-    }
+   @Override
+   public Stream<Map<SMTVariable, DDType>> satisifyAll() {
+      Stream.Builder<Map<SMTVariable, DDType>> builder = Stream.builder();
+      if (branches.getTrueBranch() instanceof DecisionDiagramLeaf) {
+         if (((DecisionDiagramLeaf) branches.getTrueBranch())
+               .equals(DecisionDiagramLeaf.SATISFIABLE)) {
+            builder.add(
+                  ImmutableMap.of(primaryVariable, branches.getCondition().satisifier()));
 
-    /**
-     * Provides a JSON string representation to easily use in debugging.
-     */
-    @Override
-    public String toString() {
-        return String.format("{\"%s\": {\"true\": %s, \"false\": %s}}", primaryVariable,
-                trueBranch, falseBranch);
-    }
+         }
 
-    @Override
-    public Stream<Map<SATVariable, Boolean>> satisifyAll() {
-        Stream.Builder<Map<SATVariable, Boolean>> builder = Stream.builder();
-        if (trueBranch instanceof DecisionDiagramLeaf) {
-            if (((DecisionDiagramLeaf) trueBranch)
-                    .equals(DecisionDiagramLeaf.SATISFIABLE)) {
-                builder.add(ImmutableMap.of(primaryVariable, true));
+      } else {
+         branches.getTrueBranch().satisifyAll()
+               .forEach(sat -> builder.add(ImmutableMap.<SMTVariable, DDType>builder()
+                     .put(primaryVariable, branches.getCondition().satisifier())
+                     .putAll(sat).build()));
+      }
+      if (branches.getFalseBranch() instanceof DecisionDiagramLeaf) {
+         if (((DecisionDiagramLeaf) branches.getFalseBranch())
+               .equals(DecisionDiagramLeaf.SATISFIABLE)) {
+            builder.add(ImmutableMap.of(primaryVariable,
+                  branches.getCondition().unSatisifier()));
+         }
 
-            }
-
-        } else {
-            trueBranch.satisifyAll().forEach(
-                    sat -> builder.add(ImmutableMap.<SATVariable, Boolean>builder()
-                            .put(primaryVariable, true).putAll(sat).build()));
-        }
-        if (falseBranch instanceof DecisionDiagramLeaf) {
-            if (((DecisionDiagramLeaf) falseBranch)
-                    .equals(DecisionDiagramLeaf.SATISFIABLE)) {
-                builder.add(ImmutableMap.of(primaryVariable, false));
-            }
-
-        } else {
-            falseBranch.satisifyAll().forEach(
-                    sat -> builder.add(ImmutableMap.<SATVariable, Boolean>builder()
-                            .put(primaryVariable, false).putAll(sat).build()));
-        }
-        return builder.build();
-    }
+      } else {
+         branches.getFalseBranch().satisifyAll()
+               .forEach(sat -> builder.add(ImmutableMap.<SMTVariable, DDType>builder()
+                     .put(primaryVariable, branches.getCondition().unSatisifier())
+                     .putAll(sat).build()));
+      }
+      return builder.build();
+   }
 }

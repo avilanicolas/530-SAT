@@ -9,70 +9,60 @@ import java.util.Map;
 
 import org.junit.Test;
 
+import com.csc530.sat.condition.BooleanCondition;
+import com.csc530.sat.type.BooleanDDType;
+import com.csc530.sat.type.DDType;
 import com.google.common.collect.ImmutableMap;
 
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class DecisionDiagramTest {
+   private static final SMTVariable X = new SMTVariable("x", Boolean.class);
+   private static final SMTVariable Y = new SMTVariable("y", Boolean.class);
+   private static final SMTVariable Z = new SMTVariable("z", Boolean.class);
+   private static final SMTVariable W = new SMTVariable("w", Boolean.class);
 
-    private static final SATVariable X = new SATVariable("x");
-    private static final SATVariable Y = new SATVariable("y");
-    private static final SATVariable Z = new SATVariable("z");
-    private static final SATVariable W = new SATVariable("w");
+   @Test
+   public void testUnion() {
+      DecisionDiagramNode xDiagram = DecisionDiagramNode.of(X, BooleanCondition.isTrue());
+      DecisionDiagramNode yDiagram = DecisionDiagramNode.of(Y, BooleanCondition.isTrue());
 
-    private static final SATVariable A = new SATVariable("a");
-    private static final SATVariable B = new SATVariable("b");
-    private static final SATVariable C = new SATVariable("c");
-    private static final SATVariable D = new SATVariable("d");
-    private static final SATVariable E = new SATVariable("e");
+      assertEquals(SATISFIABLE, xDiagram.or(SATISFIABLE));
+      assertEquals(xDiagram, xDiagram.or(xDiagram));
+      assertEquals(SATISFIABLE, xDiagram.or(xDiagram.not()));
+      assertEquals(xDiagram.or(yDiagram), xDiagram.or(yDiagram.and(xDiagram.not())));
 
-    @Test
-    public void testUnion() {
-        DecisionDiagramNode a = DecisionDiagramNode.of(A);
-        DecisionDiagramNode b = DecisionDiagramNode.of(B);
-        DecisionDiagramNode c = DecisionDiagramNode.of(C);
-        DecisionDiagramNode d = DecisionDiagramNode.of(D);
-        DecisionDiagramNode e = DecisionDiagramNode.of(E);
-        // System.out.println(xor(a, xor(b, c)));
-        System.out.println(xor(a, xor(b, xor(c, xor(d, e)))));
+      SMTVariable isItRainingVar = new SMTVariable("isItRaining?", Boolean.class);
+      SMTVariable iHaveAnUmbrellaVar = new SMTVariable("iHaveAnUmbrella", Boolean.class);
 
-        DecisionDiagramNode xDiagram = DecisionDiagramNode.of(X);
-        DecisionDiagramNode yDiagram = DecisionDiagramNode.of(Y);
+      DecisionDiagram isItRaining = DecisionDiagramNode.of(isItRainingVar,
+            BooleanCondition.isTrue());
+      DecisionDiagram iHaveAnUmbrella = DecisionDiagramNode.of(iHaveAnUmbrellaVar,
+            BooleanCondition.isTrue());
 
-        assertEquals(SATISFIABLE, xDiagram.or(SATISFIABLE));
-        assertEquals(xDiagram, xDiagram.or(xDiagram));
-        assertEquals(SATISFIABLE, xDiagram.or(xDiagram.not()));
-        assertEquals(xDiagram.or(yDiagram), xDiagram.or(yDiagram.and(xDiagram.not())));
+      System.out.println(isItRaining.not().or(iHaveAnUmbrella));
+   }
 
-        // System.out.println(xor(xDiagram, xor(yDiagram, specialDiagram)));
-        // System.out.println(xor(yDiagram, specialDiagram));
-        SATVariable isItRainingVar = new SATVariable("isItRaining?");
-        SATVariable iHaveAnUmbrellaVar = new SATVariable("iHaveAnUmbrella");
+//   private DecisionDiagram xor(DecisionDiagram a, DecisionDiagram b) {
+//      return a.and(b.not()).or(b.and(a.not()));
+//   }
 
-        DecisionDiagram isItRaining = DecisionDiagramNode.of(isItRainingVar);
-        DecisionDiagram iHaveAnUmbrella = DecisionDiagramNode.of(iHaveAnUmbrellaVar);
+   @Test
+   public void testContains() {
+      DecisionDiagramNode xDiagram = DecisionDiagramNode.of(X, BooleanCondition.isTrue());
+      DecisionDiagramNode yDiagram = DecisionDiagramNode.of(Y, BooleanCondition.isTrue());
 
-        System.out.println(isItRaining.not().or(iHaveAnUmbrella));
-    }
+      DecisionDiagram xor = xDiagram.and(yDiagram.not())
+            .or(yDiagram.and(xDiagram.not()));
 
-    private DecisionDiagram xor(DecisionDiagram a, DecisionDiagram b) {
-        return a.and(b.not()).or(b.and(a.not()));
-    }
+      assertTrue(xor.satisfies(assignment(true, false, false)));
+      assertTrue(xor.satisfies(assignment(false, true, false)));
+      assertFalse(xor.satisfies(assignment(false, false, true)));
+      assertFalse(xor.satisfies(assignment(true, true, true)));
+   }
 
-    @Test
-    public void testContains() {
-        DecisionDiagramNode xDiagram = DecisionDiagramNode.of(X);
-        DecisionDiagramNode yDiagram = DecisionDiagramNode.of(Y);
-
-        DecisionDiagram xor = xDiagram.and(yDiagram.not())
-                .or(yDiagram.and(xDiagram.not()));
-
-        assertTrue(xor.satisfies(assignment(true, false, false)));
-        assertTrue(xor.satisfies(assignment(false, true, false)));
-        assertFalse(xor.satisfies(assignment(false, false, true)));
-        assertFalse(xor.satisfies(assignment(true, true, true)));
-    }
-
-    private Map<SATVariable, Boolean> assignment(final boolean x, final boolean y,
-            final boolean z) {
-        return ImmutableMap.of(X, x, Y, y, Z, z, W, false);
-    }
+   private Map<SMTVariable, DDType> assignment(final boolean x, final boolean y,
+         final boolean z) {
+      return ImmutableMap.of(X, BooleanDDType.valueOf(x), Y, BooleanDDType.valueOf(y), Z,
+            BooleanDDType.valueOf(z), W, BooleanDDType.valueOf(false));
+   }
 }

@@ -3,53 +3,53 @@ package com.csc530.sat;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import com.csc530.sat.type.DDType;
+
+@SuppressWarnings("rawtypes")
 public enum DecisionDiagramLeaf implements DecisionDiagram {
-    SATISFIABLE, UNSATISFIABLE;
+   SATISFIABLE, UNSATISFIABLE;
 
-    @Override
-    public DecisionDiagram or(final DecisionDiagram diagram) {
-        if (this == SATISFIABLE) {
-            return SATISFIABLE;
-        }
+   @Override
+   public DecisionDiagram or(DecisionDiagram diagram) {
+      if (this == SATISFIABLE) {
+         return SATISFIABLE;
+      }
+      return diagram;
+   }
 
-        return diagram;
-    }
+   @Override
+   public DecisionDiagram and(DecisionDiagram diagram) {
+      if (this == SATISFIABLE) {
+         return diagram;
+      }
+      return UNSATISFIABLE;
+   }
 
-    @Override
-    public DecisionDiagram and(final DecisionDiagram diagram) {
-        if (this == SATISFIABLE) {
-            return diagram;
-        }
+   @Override
+   public DecisionDiagram not() {
+      if (this == SATISFIABLE) {
+         return UNSATISFIABLE;
+      }
+      return SATISFIABLE;
+   }
 
-        return UNSATISFIABLE;
-    }
+   @Override
+   public DecisionDiagram assume(SMTVariable variable, DDType value) {
+      return this;
+   }
 
-    @Override
-    public DecisionDiagram not() {
-        if (this == SATISFIABLE) {
-            return UNSATISFIABLE;
-        }
+   @Override
+   public boolean satisfies(Map<SMTVariable, DDType> assignment) {
+      return this == SATISFIABLE;
+   }
 
-        return SATISFIABLE;
-    }
+   @Override
+   public String toString() {
+      return "\"" + name() + "\"";
+   }
 
-    @Override
-    public boolean satisfies(final Map<SATVariable, Boolean> values) {
-        return this == SATISFIABLE;
-    }
-
-    @Override
-    public DecisionDiagram assume(SATVariable variable, Boolean value) {
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "\"" + name() + "\"";
-    }
-
-    @Override
-    public Stream<Map<SATVariable, Boolean>> satisifyAll() {
-        return Stream.empty();
-    }
+   @Override
+   public Stream<Map<SMTVariable, DDType>> satisifyAll() {
+      return Stream.empty();
+   }
 }
