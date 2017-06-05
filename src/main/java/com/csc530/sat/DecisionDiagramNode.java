@@ -28,8 +28,8 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
    private final LinkedHashSet<SMTVariable<?>> variables;
    private final DecisionDiagramBranches<T> branches;
 
-   public static DecisionDiagramNode of(final SMTVariable variable,
-         final DDCondition condition) {
+   public static <T> DecisionDiagramNode<T> of(final SMTVariable<T> variable,
+         final DDCondition<T> condition) {
       LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
       vars.add(variable);
       return of(variable, vars, condition);

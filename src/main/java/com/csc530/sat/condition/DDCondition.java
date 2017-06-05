@@ -8,8 +8,4 @@ public interface DDCondition<T> {
    public DDType<T> unSatisifier();
 
    public DDCondition<T> not();
-   
-   public DDCondition<T> or(DDCondition<T> other);
-
-   public DDCondition<T> and(DDCondition<T> other);
 }

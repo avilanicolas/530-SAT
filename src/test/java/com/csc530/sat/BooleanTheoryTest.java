@@ -15,7 +15,7 @@ import com.csc530.sat.type.DDType;
 import com.google.common.collect.ImmutableMap;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public class DecisionDiagramTest {
+public class BooleanTheoryTest {
    private static final SMTVariable X = new SMTVariable("x", Boolean.class);
    private static final SMTVariable Y = new SMTVariable("y", Boolean.class);
    private static final SMTVariable Z = new SMTVariable("z", Boolean.class);

@@ -48,23 +48,6 @@ public class BooleanCondition implements DDCondition<Boolean> {
    }
 
    @Override
-   public DDCondition<Boolean> or(DDCondition<Boolean> other) {
-      return toBuilder()
-            .truthy(b -> truthy.apply(b) || other.satisifies(BooleanDDType.valueOf(b)))
-            .build();
-   }
-
-   @Override
-   public DDCondition<Boolean> and(DDCondition<Boolean> other) {
-      return toBuilder()
-            .truthy(b -> truthy.apply(b) && other.satisifies(BooleanDDType.valueOf(b)))
-            .satisifier(truthy.apply(satisifier)
-                  && other.satisifies(BooleanDDType.valueOf(satisifier)) ? satisifier
-                        : !satisifier)
-            .build();
-   }
-
-   @Override
    public String toString() {
       return satisifier.toString();
    }
