@@ -10,7 +10,7 @@ import lombok.ToString;
 @Builder
 @AllArgsConstructor
 @ToString
-public class SMTVariable<C> {
+public class Variable<C> {
     private String name;
     private Class<C> valueClass;
 
@@ -20,12 +20,12 @@ public class SMTVariable<C> {
             return true;
         }
 
-        if (o == null || !(o instanceof SMTVariable)) {
+        if (o == null || !(o instanceof Variable)) {
             return false;
         }
 
         @SuppressWarnings("rawtypes")
-        SMTVariable other = (SMTVariable) o;
+        Variable other = (Variable) o;
         return new EqualsBuilder()
                 .append(name, other.name)
                 .append(valueClass, other.valueClass)

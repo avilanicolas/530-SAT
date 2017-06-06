@@ -34,12 +34,12 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
     }
 
     @Override
-    public DecisionDiagram assume(SMTVariable variable, DDType value) {
+    public DecisionDiagram assume(Variable variable, DDType value) {
         return this;
     }
 
     @Override
-    public boolean satisfies(Map<SMTVariable, DDType> assignment) {
+    public boolean satisfies(Map<Variable, DDType> assignment) {
         return this == SATISFIABLE;
     }
 
@@ -49,7 +49,7 @@ public enum DecisionDiagramLeaf implements DecisionDiagram {
     }
 
     @Override
-    public Stream<Map<SMTVariable, DDType>> satisifyAll() {
+    public Stream<Map<Variable, DDType>> satisifyAll() {
         return Stream.empty();
     }
 }

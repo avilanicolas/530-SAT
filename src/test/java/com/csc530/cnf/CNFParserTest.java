@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import com.csc530.sat.DecisionDiagram;
 import com.csc530.sat.DecisionDiagramNode;
-import com.csc530.sat.SMTVariable;
+import com.csc530.sat.Variable;
 import com.csc530.sat.condition.bool.BooleanCondition;
 import com.csc530.sat.type.bool.BooleanDDType;
 import com.google.common.collect.ImmutableList;
@@ -24,7 +24,7 @@ public class CNFParserTest {
     public void testParse() throws IOException {
         DecisionDiagram actual = CNFParser.fromFile(Paths.get("cnf/simple.cnf"));
         List<DecisionDiagram> vars = ImmutableList.of("x1", "x2", "x3", "x4", "x5")
-                .stream().map(v -> new SMTVariable<>(v, Boolean.class))
+                .stream().map(v -> new Variable<>(v, Boolean.class))
                 .map(var -> DecisionDiagramNode.of(var, BooleanCondition.isTrue()))
                 .collect(Collectors.toList());
         DecisionDiagram expected = vars.get(0).or(vars.get(4).not()).or(vars.get(3))
@@ -38,7 +38,7 @@ public class CNFParserTest {
                         BooleanDDType.TRUE)
                 .entrySet().stream()
                 .collect(Collectors.toMap(
-                        entry -> new SMTVariable<>(entry.getKey(), Boolean.class),
+                        entry -> new Variable<>(entry.getKey(), Boolean.class),
                         entry -> entry.getValue()))));
     }
 }

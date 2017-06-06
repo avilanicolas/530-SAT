@@ -14,10 +14,10 @@ import com.csc530.sat.type.integer.IntegerDDType;
 import com.google.common.collect.ImmutableMap;
 
 public class IntegerTheoryTest {
-    private static final SMTVariable<Integer> X = new SMTVariable<>("x", Integer.class);
-    private static final SMTVariable<Integer> Y = new SMTVariable<>("y", Integer.class);
-    private static final SMTVariable<Boolean> Z = new SMTVariable<>("z", Boolean.class);
-    private static final SMTVariable<Boolean> W = new SMTVariable<>("w", Boolean.class);
+    private static final Variable<Integer> X = new Variable<>("x", Integer.class);
+    private static final Variable<Integer> Y = new Variable<>("y", Integer.class);
+    private static final Variable<Boolean> Z = new Variable<>("z", Boolean.class);
+    private static final Variable<Boolean> W = new Variable<>("w", Boolean.class);
 
     @Test
     public void testIntEQTheory() {

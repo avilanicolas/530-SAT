@@ -23,19 +23,19 @@ import lombok.RequiredArgsConstructor;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @Getter
 public class DecisionDiagramNode<T> implements DecisionDiagram {
-    private final SMTVariable<T> primaryVariable;
-    private final LinkedHashSet<SMTVariable> variables;
+    private final Variable<T> primaryVariable;
+    private final LinkedHashSet<Variable> variables;
     private final Decision<T> branches;
 
-    public static <T> DecisionDiagramNode<T> of(final SMTVariable<T> variable,
+    public static <T> DecisionDiagramNode<T> of(final Variable<T> variable,
             final DDCondition<T> condition) {
-        LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
+        LinkedHashSet<Variable<?>> vars = new LinkedHashSet<>();
         vars.add(variable);
         return of(variable, vars, condition);
     }
 
-    public static DecisionDiagramNode of(final SMTVariable variable,
-            final LinkedHashSet<SMTVariable<?>> variables, final DDCondition condition) {
+    public static DecisionDiagramNode of(final Variable variable,
+            final LinkedHashSet<Variable<?>> variables, final DDCondition condition) {
         return new DecisionDiagramNode(variable, variables,
                 Decision.builder()
                         .primaryVariable(variable)
@@ -61,7 +61,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
         }
 
         DecisionDiagramNode otherNode = (DecisionDiagramNode) diagram;
-        LinkedHashSet<SMTVariable> vars = new LinkedHashSet<>();
+        LinkedHashSet<Variable> vars = new LinkedHashSet<>();
         vars.addAll(variables);
         vars.addAll(otherNode.variables);
         if (primaryVariable.equals(otherNode.primaryVariable)) {
@@ -115,7 +115,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
     }
 
     @Override
-    public boolean satisfies(final Map<SMTVariable, DDType> assignment) {
+    public boolean satisfies(final Map<Variable, DDType> assignment) {
         // This tree cannot possibly be satisfied if the assignment is empty
         if (assignment.isEmpty()) {
             return false;
@@ -131,7 +131,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
         // If the assignment does contain the variable, remove it from the
         // assignment
         // and recursively check the branch children
-        Map<SMTVariable, DDType> reducedAssignment = assignment.keySet().stream()
+        Map<Variable, DDType> reducedAssignment = assignment.keySet().stream()
                 .filter(k -> !primaryVariable.equals(k))
                 .collect(Collectors.toMap(k -> k, assignment::get));
 
@@ -139,7 +139,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
     }
 
     @Override
-    public DecisionDiagram assume(final SMTVariable variable, final DDType value) {
+    public DecisionDiagram assume(final Variable variable, final DDType value) {
         if (!variables.contains(variable)) {
             return this;
         }
@@ -157,7 +157,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
             return trueBranchAssumed;
         }
 
-        LinkedHashSet<SMTVariable<?>> vars = new LinkedHashSet<>();
+        LinkedHashSet<Variable<?>> vars = new LinkedHashSet<>();
         variables.stream()
                 .filter(v -> !v.equals(variable))
                 .forEach(vars::add);
@@ -201,8 +201,8 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
     }
 
     @Override
-    public Stream<Map<SMTVariable, DDType>> satisifyAll() {
-        Stream.Builder<Map<SMTVariable, DDType>> builder = Stream.builder();
+    public Stream<Map<Variable, DDType>> satisifyAll() {
+        Stream.Builder<Map<Variable, DDType>> builder = Stream.builder();
         if (branches.getTrueBranch() instanceof DecisionDiagramLeaf) {
             if (((DecisionDiagramLeaf) branches.getTrueBranch())
                     .equals(DecisionDiagramLeaf.SATISFIABLE)) {
@@ -215,7 +215,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
         } else {
             branches.getTrueBranch().satisifyAll()
                     .forEach(
-                            sat -> builder.add(ImmutableMap.<SMTVariable, DDType>builder()
+                            sat -> builder.add(ImmutableMap.<Variable, DDType>builder()
                                     .put(primaryVariable,
                                             branches.getCondition().satisifier())
                                     .putAll(sat).build()));
@@ -230,7 +230,7 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
         } else {
             branches.getFalseBranch().satisifyAll()
                     .forEach(
-                            sat -> builder.add(ImmutableMap.<SMTVariable, DDType>builder()
+                            sat -> builder.add(ImmutableMap.<Variable, DDType>builder()
                                     .put(primaryVariable,
                                             branches.getCondition().unSatisifier())
                                     .putAll(sat).build()));

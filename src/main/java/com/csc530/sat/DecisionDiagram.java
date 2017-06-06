@@ -47,13 +47,13 @@ public interface DecisionDiagram {
      *
      * variable does not need to exist within this diagram to be assumed.
      */
-    public DecisionDiagram assume(final SMTVariable variable, final DDType value);
+    public DecisionDiagram assume(final Variable variable, final DDType value);
 
     /**
      * Determines if assignment contains an assignment of variables which
      * satisfies this diagram.
      */
-    public boolean satisfies(final Map<SMTVariable, DDType> assignment);
+    public boolean satisfies(final Map<Variable, DDType> assignment);
 
     /**
      * Finds all the possible cases that satisfy this boolean equation. Note
@@ -65,7 +65,7 @@ public interface DecisionDiagram {
      * @return all possible mappings of the enclosed sat variables that satisfy
      *         the boolean condition represented herein
      */
-    public Stream<Map<SMTVariable, DDType>> satisifyAll();
+    public Stream<Map<Variable, DDType>> satisifyAll();
 
     public default boolean isSatisfiable() {
         return this != DecisionDiagramLeaf.UNSATISFIABLE;

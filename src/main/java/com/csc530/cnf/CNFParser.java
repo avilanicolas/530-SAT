@@ -8,7 +8,7 @@ import java.util.Scanner;
 
 import com.csc530.sat.DecisionDiagram;
 import com.csc530.sat.DecisionDiagramNode;
-import com.csc530.sat.SMTVariable;
+import com.csc530.sat.Variable;
 import com.csc530.sat.condition.bool.BooleanCondition;
 
 /**
@@ -86,7 +86,7 @@ public class CNFParser {
                     numClauses--;
                 } else {
                     DecisionDiagram current = DecisionDiagramNode
-                            .of(new SMTVariable<Boolean>(VAR_PREFIX + Math.abs(literal),
+                            .of(new Variable<Boolean>(VAR_PREFIX + Math.abs(literal),
                                     Boolean.class), BooleanCondition.isTrue());
                     if (literal < 0) {
                         current = current.not();

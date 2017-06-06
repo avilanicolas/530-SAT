@@ -49,10 +49,10 @@ public class AppTest extends TestCase {
         // unsatisfiable
 
         // They reason over variables:
-        SMTVariable varA = new SMTVariable("a", Boolean.class);
-        SMTVariable varB = new SMTVariable("b", Boolean.class);
-        SMTVariable varC = new SMTVariable("c", Boolean.class);
-        SMTVariable varD = new SMTVariable("d", Boolean.class);
+        Variable varA = new Variable("a", Boolean.class);
+        Variable varB = new Variable("b", Boolean.class);
+        Variable varC = new Variable("c", Boolean.class);
+        Variable varD = new Variable("d", Boolean.class);
 
         // This is the boolean equation of a single term: a
         DecisionDiagram a = DecisionDiagramNode.of(varA, BooleanCondition.isTrue());
@@ -180,12 +180,12 @@ public class AppTest extends TestCase {
     }
 
     @SuppressWarnings("rawtypes")
-    private Map<SMTVariable, DDType> assignment(final Object... assignments) {
+    private Map<Variable, DDType> assignment(final Object... assignments) {
         Preconditions.checkArgument(assignments.length % 2 == 0);
 
-        ImmutableMap.Builder<SMTVariable, DDType> map = ImmutableMap.builder();
+        ImmutableMap.Builder<Variable, DDType> map = ImmutableMap.builder();
         for (int i = 0; i < assignments.length;) {
-            map.put((SMTVariable) assignments[i++],
+            map.put((Variable) assignments[i++],
                     BooleanDDType.valueOf((Boolean) assignments[i++]));
         }
 

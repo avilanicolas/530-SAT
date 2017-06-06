@@ -43,7 +43,7 @@ import org.smtlib.IVisitor;
 
 import com.csc530.sat.DecisionDiagram;
 import com.csc530.sat.DecisionDiagramNode;
-import com.csc530.sat.SMTVariable;
+import com.csc530.sat.Variable;
 import com.csc530.sat.condition.bool.BooleanCondition;
 
 /* Used by the SimpleSolver to turn an IExpr into a decision diagram */
@@ -235,7 +235,7 @@ class ExpressionVisitor implements IVisitor<DecisionDiagram> {
         if (!booleanVariables.contains(symbol)) {
             throw new RuntimeException("Encountered unknown symbol: " + symbol);
         }
-        return DecisionDiagramNode.of(new SMTVariable<Boolean>(symbol, Boolean.class),
+        return DecisionDiagramNode.of(new Variable<Boolean>(symbol, Boolean.class),
                 BooleanCondition.isTrue());
     }
 

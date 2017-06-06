@@ -3,7 +3,7 @@ package com.csc530.sat.branch;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import com.csc530.sat.DecisionDiagram;
-import com.csc530.sat.SMTVariable;
+import com.csc530.sat.Variable;
 import com.csc530.sat.condition.DDCondition;
 import com.csc530.sat.type.DDType;
 
@@ -15,13 +15,13 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Decision<T> {
-    private final SMTVariable<T> primaryVariable;
+    private final Variable<T> primaryVariable;
     private final DDCondition<T> condition;
     private final DecisionDiagram trueBranch;
     private final DecisionDiagram falseBranch;
 
     @Builder(toBuilder = true)
-    public static <T> Decision<T> create(SMTVariable<T> primaryVariable,
+    public static <T> Decision<T> create(Variable<T> primaryVariable,
             DDCondition<T> condition,
             DecisionDiagram trueBranch, DecisionDiagram falseBranch) {
         return new Decision<T>(primaryVariable, condition, trueBranch,
