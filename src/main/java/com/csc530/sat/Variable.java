@@ -5,11 +5,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.ToString;
 
 @Builder
 @AllArgsConstructor
 @ToString
+@Getter
 public class Variable<C> {
     private String name;
     private Class<C> valueClass;
