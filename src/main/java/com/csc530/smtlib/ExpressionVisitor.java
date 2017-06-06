@@ -124,15 +124,23 @@ class ExpressionVisitor implements IVisitor<DecisionDiagram> {
         }
 
         if ("and".equalsIgnoreCase(functionName)) {
-            if (arguments.size() != 2) {
-                throw new RuntimeException("AND function should have 2 arguments");
+            if (arguments.size() < 2) {
+                throw new RuntimeException("AND function should have at least 2 arguments");
             }
-            return and(arguments.get(0), arguments.get(1));
+            DecisionDiagram dd = arguments.get(0);
+            for (int i = 1; i < arguments.size(); i++) {
+                dd = and(dd, arguments.get(i));
+            }
+            return dd;
         } else if ("or".equalsIgnoreCase(functionName)) {
-            if (arguments.size() != 2) {
-                throw new RuntimeException("OR function should have 2 arguments");
+            if (arguments.size() < 2) {
+                throw new RuntimeException("OR function should have at least 2 arguments");
             }
-            return or(arguments.get(0), arguments.get(1));
+            DecisionDiagram dd = arguments.get(0);
+            for (int i = 1; i < arguments.size(); i++) {
+                dd = or(dd, arguments.get(i));
+            }
+            return dd;
         } else if ("xor".equalsIgnoreCase(functionName)) {
             if (arguments.size() != 2) {
                 throw new RuntimeException("XOR function should have 2 arguments");
