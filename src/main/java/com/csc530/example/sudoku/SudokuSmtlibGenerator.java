@@ -1,4 +1,4 @@
-package com.csc530.other;
+package com.csc530.example.sudoku;
 
 import java.util.HashSet;
 import java.util.Set;

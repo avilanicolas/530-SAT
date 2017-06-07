@@ -1,8 +1,11 @@
 package com.csc530.sat;
 
+import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import org.smtlib.IParser.ParserException;
 
 import com.csc530.cnf.CNFParser;
 import com.csc530.smtlib.SmtLibRunner;
@@ -49,7 +52,7 @@ public class App {
         return config;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ParserException {
         Config config = parseConfig(args);
         if (config == null) {
             System.err.println(USAGE);
