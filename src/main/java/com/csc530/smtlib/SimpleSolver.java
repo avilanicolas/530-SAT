@@ -1,6 +1,9 @@
 package com.csc530.smtlib;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.smtlib.ICommand.Ideclare_fun;
@@ -12,6 +15,7 @@ import org.smtlib.IExpr.IAttributeValue;
 import org.smtlib.IExpr.IKeyword;
 import org.smtlib.IPos;
 import org.smtlib.IResponse;
+import org.smtlib.IResponse.IPair;
 import org.smtlib.ISolver;
 import org.smtlib.IVisitor;
 import org.smtlib.IVisitor.VisitorException;
@@ -19,6 +23,8 @@ import org.smtlib.SMT;
 import org.smtlib.SMT.Configuration;
 
 import com.csc530.sat.DecisionDiagram;
+import com.csc530.sat.Variable;
+import com.csc530.sat.type.DDType;
 
 /**
  * This class exists purely to interface with the jSMTLIB parsing library. It
@@ -28,14 +34,16 @@ class SimpleSolver implements ISolver {
 
     private static final String QUANTIFIER_FREE_BOOLEAN_ONLY_LOGIC_TYPE_IDENTIFIER = "QF_UF";
 
-    private final Set<IExpr> assertions;
+    private final List<IExpr> assertions;
     private final Set<String> booleanVariables;
     private final SMT.Configuration smtConfig;
+
+    private Map<Variable, DDType> satisfyingValues;
 
     public SimpleSolver(SMT.Configuration smtConfig) {
         this.smtConfig = smtConfig;
         booleanVariables = new HashSet<>();
-        assertions = new HashSet<>();
+        assertions = new ArrayList<>();
     }
 
     @Override
@@ -93,10 +101,17 @@ class SimpleSolver implements ISolver {
 
     @Override
     public IResponse check_sat() {
+        long startTime = System.currentTimeMillis();
         // Builds a decision diagram by traversing each assertion, then anding
         // all assertion diagrams into currentDiagram
         DecisionDiagram currentDiagram = null;
+        int pos = 0;
         for (IExpr expression : assertions) {
+            pos++;
+            if (pos % 50 == 0) {
+                System.out.println("Adding assertion = " + pos + " / " + assertions.size());
+                System.out.println("Assertion: " + expression.toString());
+            }
             IVisitor<DecisionDiagram> visitor = new ExpressionVisitor(booleanVariables);
             try {
                 DecisionDiagram diagram = expression.accept(visitor);
@@ -117,7 +132,9 @@ class SimpleSolver implements ISolver {
                     .error("No assertions statements found to check for satisfiability");
         }
 
+        System.out.println("Took: " + ((System.currentTimeMillis() - startTime) / 1000l) + " seconds");
         if (currentDiagram.isSatisfiable()) {
+            satisfyingValues = currentDiagram.satisifyAll().findAny().get();
             return smtConfig.responseFactory.sat();
         } else {
             return smtConfig.responseFactory.unsat();
@@ -161,8 +178,7 @@ class SimpleSolver implements ISolver {
 
     @Override
     public IResponse set_option(IKeyword option, IAttributeValue value) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Not yet implemented");
+        return smtConfig.responseFactory.error("Options not supported");
     }
 
     @Override
@@ -191,8 +207,20 @@ class SimpleSolver implements ISolver {
 
     @Override
     public IResponse get_value(IExpr... terms) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Not yet implemented");
+        if (satisfyingValues == null) {
+            return smtConfig.responseFactory.error("run check-sat sucessfully first");
+        }
+        List<IPair<IExpr,IExpr>> response = new ArrayList<>();
+        for (IExpr term : terms) {
+            Variable<Boolean> var = new Variable<>(term.toString(), Boolean.class);
+            if (!satisfyingValues.containsKey(var)) {
+                return smtConfig.responseFactory.error("Value not found for variable: " + term);
+            }
+            @SuppressWarnings("unchecked")
+            DDType<Boolean> ddt = satisfyingValues.get(var);
+            response.add(smtConfig.responseFactory.pair(term, smtConfig.exprFactory.symbol(ddt.toString())));
+        }
+        return smtConfig.responseFactory.get_value_response(response);
     }
 
     @Override
