@@ -11,7 +11,7 @@ Usage
 -------
 ```
 mvn install
-java -jar target/sat-0.0.1-jar-with-dependencies.jar <cnf_file>
+java -jar target/sat-0.0.1-jar-with-dependencies.jar [--smt-lib|<file.cnf>] [smt_lib_files]
 ```
 This will output all possible mappings of variables that satisfy the boolean equation specified by cnf_file which must be a file specifiying a boolean function in dimacs cnf format  see https://www.dwheeler.com/essays/minisat-user-guide.html
 
