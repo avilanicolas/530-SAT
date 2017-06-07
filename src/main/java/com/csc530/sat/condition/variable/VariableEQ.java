@@ -1,8 +1,10 @@
-package com.csc530.sat.condition;
+package com.csc530.sat.condition.variable;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.csc530.sat.condition.DDCondition;
+import com.csc530.sat.type.DDPair;
 import com.csc530.sat.type.DDType;
 import com.google.common.base.Preconditions;
 
@@ -28,27 +30,16 @@ public class VariableEQ<T> implements DDCondition<Pair<DDType<T>, DDType<T>>> {
 
     @Override
     public DDType<Pair<DDType<T>, DDType<T>>> satisifier() {
-        return new DDType<Pair<DDType<T>, DDType<T>>>() {
-            @Override
-            public Pair<DDType<T>, DDType<T>> getValue() {
-                return ImmutablePair.of(first, first);
-            }
-        };
+        return DDPair.create(ImmutablePair.of(first, first));
     }
 
     @Override
     public DDType<Pair<DDType<T>, DDType<T>>> unSatisifier() {
-        return new DDType<Pair<DDType<T>, DDType<T>>>() {
-            @Override
-            public Pair<DDType<T>, DDType<T>> getValue() {
-                return ImmutablePair.of(first, second);
-            }
-        };
+        return DDPair.create(ImmutablePair.of(first, second));
     }
 
     @Override
     public DDCondition<Pair<DDType<T>, DDType<T>>> not() {
         return VariableEQ.create(first, second);
     }
-
 }

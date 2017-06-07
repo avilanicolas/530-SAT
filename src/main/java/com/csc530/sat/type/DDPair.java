@@ -7,15 +7,23 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class IntegerPair implements DDType<Pair<DDType<Integer>, DDType<Integer>>> {
-    private final Pair<DDType<Integer>, DDType<Integer>> value;
-    
-    public static IntegerPair create(Pair<DDType<Integer>, DDType<Integer>> value) {
-        return new IntegerPair(value);
+public class DDPair<T> implements DDType<Pair<DDType<T>, DDType<T>>> {
+    private final Pair<DDType<T>, DDType<T>> value;
+
+    /**
+     * what do you mean java is type safe?
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static DDPair createUnsafe(Pair pair) {
+        return create(pair);
+    }
+
+    public static <T> DDPair<T> create(Pair<DDType<T>, DDType<T>> value) {
+        return new DDPair<T>(value);
     }
 
     @Override
-    public Pair<DDType<Integer>, DDType<Integer>> getValue() {
+    public Pair<DDType<T>, DDType<T>> getValue() {
         return value;
     }
 
@@ -25,11 +33,11 @@ public class IntegerPair implements DDType<Pair<DDType<Integer>, DDType<Integer>
             return true;
         }
 
-        if (o == null || !(o instanceof IntegerPair)) {
+        if (o == null || !(o instanceof DDPair)) {
             return false;
         }
 
-        IntegerPair other = (IntegerPair) o;
+        DDPair<?> other = (DDPair<?>) o;
         return value.equals(other.value);
     }
 
@@ -40,4 +48,5 @@ public class IntegerPair implements DDType<Pair<DDType<Integer>, DDType<Integer>
                 .build()
                 .hashCode();
     }
+
 }
