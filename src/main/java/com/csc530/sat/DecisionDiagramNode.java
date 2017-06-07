@@ -2,12 +2,22 @@ package com.csc530.sat;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.csc530.sat.branch.Decision;
 import com.csc530.sat.condition.DDCondition;
+import com.csc530.sat.condition.variable.VariableEQ;
+import com.csc530.sat.condition.variable.VariableNEQ;
+import com.csc530.sat.type.DDPair;
 import com.csc530.sat.type.DDType;
 import com.google.common.collect.ImmutableMap;
 
@@ -23,19 +33,43 @@ import lombok.RequiredArgsConstructor;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @Getter
 public class DecisionDiagramNode<T> implements DecisionDiagram {
+    private final Pattern combination = Pattern
+            .compile("^([a-zA-Z0-9]+)_-_([a-zA-Z0-9]+)$");
     private final Variable<T> primaryVariable;
     private final LinkedHashSet<Variable> variables;
     private final Decision<T> branches;
 
     public static <T> DecisionDiagramNode<T> of(final Variable<T> variable,
             final DDCondition<T> condition) {
-        LinkedHashSet<Variable<?>> vars = new LinkedHashSet<>();
+        LinkedHashSet<Variable> vars = new LinkedHashSet<>();
         vars.add(variable);
         return of(variable, vars, condition);
     }
 
+    public static <T> DecisionDiagramNode<T> eq(final Variable<T> first,
+            final Variable<T> second, DDType<T> firstValue, DDType<T> secondValue) {
+        LinkedHashSet<Variable> vars = new LinkedHashSet<>();
+        Variable andVariable = new Variable(first.getName() + "_-_" + second.getName(),
+                Pair.class);
+        vars.add(andVariable);
+        vars.add(first);
+        vars.add(second);
+        return of(andVariable, vars, VariableEQ.create(firstValue, secondValue));
+    }
+
+    public static <T> DecisionDiagramNode<T> neq(final Variable<T> first,
+            final Variable<T> second, DDType<T> firstValue, DDType<T> secondValue) {
+        LinkedHashSet<Variable> vars = new LinkedHashSet<>();
+        Variable andVariable = new Variable(first.getName() + "_-_" + second.getName(),
+                Pair.class);
+        vars.add(andVariable);
+        vars.add(first);
+        vars.add(second);
+        return of(andVariable, vars, VariableNEQ.create(firstValue, secondValue));
+    }
+
     public static DecisionDiagramNode of(final Variable variable,
-            final LinkedHashSet<Variable<?>> variables, final DDCondition condition) {
+            final LinkedHashSet<Variable> variables, final DDCondition condition) {
         return new DecisionDiagramNode(variable, variables,
                 Decision.builder()
                         .primaryVariable(variable)
@@ -121,12 +155,32 @@ public class DecisionDiagramNode<T> implements DecisionDiagram {
             return false;
         }
 
-        // Or if it doesn't contain this node's variable!
+        DecisionDiagram branch;
         if (!assignment.containsKey(primaryVariable)) {
-            return false;
+            Matcher matcher = combination.matcher(primaryVariable.getName());
+            if (matcher.matches()) {
+                String var1 = matcher.group(1);
+                String var2 = matcher.group(2);
+                Optional<Variable> one = assignment.entrySet().stream()
+                        .map(Entry::getKey)
+                        .filter(val -> val.getName().equals(var1))
+                        .findFirst();
+                Optional<Variable> two = assignment.entrySet().stream().map(Entry::getKey)
+                        .filter(val -> val.getName().equals(var2))
+                        .findFirst();
+                if (one.isPresent() && two.isPresent()) {
+                    branch = branches.getBranch(DDPair.createUnsafe(ImmutablePair.of(
+                            assignment.get(one.get()),
+                            assignment.get(two.get()))));
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            branch = branches.getBranch(assignment.get(primaryVariable));
         }
-
-        DecisionDiagram branch = branches.getBranch(assignment.get(primaryVariable));
 
         // If the assignment does contain the variable, remove it from the
         // assignment
