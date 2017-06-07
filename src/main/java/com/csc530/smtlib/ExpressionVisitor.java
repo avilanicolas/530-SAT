@@ -2,7 +2,6 @@ package com.csc530.smtlib;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.smtlib.ICommand;
 import org.smtlib.ICommand.IScript;
@@ -41,84 +40,80 @@ import org.smtlib.ISort.IParameter;
 import org.smtlib.ITheory;
 import org.smtlib.IVisitor;
 
-import com.csc530.sat.DecisionDiagram;
-import com.csc530.sat.DecisionDiagramNode;
-import com.csc530.sat.Variable;
-import com.csc530.sat.condition.bool.BooleanCondition;
+import com.csc530.bruteforce.AndClause;
+import com.csc530.bruteforce.Clause;
+import com.csc530.bruteforce.NotClause;
+import com.csc530.bruteforce.OrClause;
+import com.csc530.bruteforce.ReferenceClause;
+import com.csc530.bruteforce.XorClause;
 
 /* Used by the SimpleSolver to turn an IExpr into a decision diagram */
-class ExpressionVisitor implements IVisitor<DecisionDiagram> {
-
-    private final Set<String> booleanVariables;
-
-    public ExpressionVisitor(Set<String> booleanVariables) {
-        this.booleanVariables = booleanVariables;
-    }
+class ExpressionVisitor implements IVisitor<Clause> {
 
     @Override
-    public DecisionDiagram visit(IAttribute<?> e)
+    public Clause visit(IAttribute<?> e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IAttributedExpr e)
+    public Clause visit(IAttributedExpr e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IBinaryLiteral e)
+    public Clause visit(IBinaryLiteral e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IBinding e)
+    public Clause visit(IBinding e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IDecimal e)
+    public Clause visit(IDecimal e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IExists e)
+    public Clause visit(IExists e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     // Included for clarity in below boolean logic
-    private DecisionDiagram not(DecisionDiagram dd) {
-        return dd.not();
+    private Clause not(Clause dd) {
+        return new NotClause(dd);
     }
 
-    private DecisionDiagram and(DecisionDiagram a, DecisionDiagram b) {
-        return a.and(b);
+    private Clause and(Clause a, Clause b) {
+        return new AndClause(a, b);
     }
 
-    private DecisionDiagram or(DecisionDiagram a, DecisionDiagram b) {
-        return a.or(b);
+    private Clause or(Clause a, Clause b) {
+        return new OrClause(a, b);
     }
 
-    private DecisionDiagram xor(DecisionDiagram a, DecisionDiagram b) {
-        return a.xor(b);
+    private Clause xor(Clause a, Clause b) {
+        return new XorClause(a, b);
     }
 
     @Override
-    public DecisionDiagram visit(IFcnExpr function)
+    public Clause visit(IFcnExpr function)
             throws org.smtlib.IVisitor.VisitorException {
         String functionName = ((ISymbol) function.head()).value();
-        List<DecisionDiagram> arguments = new ArrayList<>();
+        List<Clause> arguments = new ArrayList<>();
         for (IExpr expression : function.args()) {
             arguments.add(expression.accept(this));
         }
@@ -127,7 +122,7 @@ class ExpressionVisitor implements IVisitor<DecisionDiagram> {
             if (arguments.size() < 2) {
                 throw new RuntimeException("AND function should have at least 2 arguments");
             }
-            DecisionDiagram dd = arguments.get(0);
+            Clause dd = arguments.get(0);
             for (int i = 1; i < arguments.size(); i++) {
                 dd = and(dd, arguments.get(i));
             }
@@ -136,7 +131,7 @@ class ExpressionVisitor implements IVisitor<DecisionDiagram> {
             if (arguments.size() < 2) {
                 throw new RuntimeException("OR function should have at least 2 arguments");
             }
-            DecisionDiagram dd = arguments.get(0);
+            Clause dd = arguments.get(0);
             for (int i = 1; i < arguments.size(); i++) {
                 dd = or(dd, arguments.get(i));
             }
@@ -164,7 +159,7 @@ class ExpressionVisitor implements IVisitor<DecisionDiagram> {
             if (arguments.size() != 1) {
                 throw new RuntimeException("NOT function should have 1 argument");
             }
-            DecisionDiagram value = function.args().get(0).accept(this);
+            Clause value = function.args().get(0).accept(this);
             return not(value);
         } else {
             throw new RuntimeException(
@@ -174,200 +169,196 @@ class ExpressionVisitor implements IVisitor<DecisionDiagram> {
     }
 
     @Override
-    public DecisionDiagram visit(IForall e)
+    public Clause visit(IForall e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IHexLiteral e)
+    public Clause visit(IHexLiteral e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IKeyword e)
+    public Clause visit(IKeyword e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(ILet e)
+    public Clause visit(ILet e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(INumeral e)
+    public Clause visit(INumeral e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IDeclaration e)
+    public Clause visit(IDeclaration e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IParameterizedIdentifier e)
+    public Clause visit(IParameterizedIdentifier e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IAsIdentifier e)
+    public Clause visit(IAsIdentifier e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IStringLiteral e)
+    public Clause visit(IStringLiteral e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(ISymbol e)
+    public Clause visit(ISymbol e)
             throws org.smtlib.IVisitor.VisitorException {
         String symbol = e.value();
-        if (!booleanVariables.contains(symbol)) {
-            throw new RuntimeException("Encountered unknown symbol: " + symbol);
-        }
-        return DecisionDiagramNode.of(new Variable<Boolean>(symbol, Boolean.class),
-                BooleanCondition.isTrue());
+        return new ReferenceClause(symbol);
     }
 
     @Override
-    public DecisionDiagram visit(IScript e)
+    public Clause visit(IScript e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(ICommand e)
+    public Clause visit(ICommand e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IFamily s)
+    public Clause visit(IFamily s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IAbbreviation s)
+    public Clause visit(IAbbreviation s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IApplication s)
+    public Clause visit(IApplication s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IFcnSort s)
+    public Clause visit(IFcnSort s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IParameter s)
+    public Clause visit(IParameter s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(ILogic s)
+    public Clause visit(ILogic s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(ITheory s)
+    public Clause visit(ITheory s)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IResponse e)
+    public Clause visit(IResponse e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IError e)
+    public Clause visit(IError e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(org.smtlib.IResponse.IError e)
+    public Clause visit(org.smtlib.IResponse.IError e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IAssertionsResponse e)
+    public Clause visit(IAssertionsResponse e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IAssignmentResponse e)
+    public Clause visit(IAssignmentResponse e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IProofResponse e)
+    public Clause visit(IProofResponse e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IValueResponse e)
+    public Clause visit(IValueResponse e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IUnsatCoreResponse e)
+    public Clause visit(IUnsatCoreResponse e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public DecisionDiagram visit(IAttributeList e)
+    public Clause visit(IAttributeList e)
             throws org.smtlib.IVisitor.VisitorException {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Not yet implemented");

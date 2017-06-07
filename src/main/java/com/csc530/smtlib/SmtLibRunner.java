@@ -3,6 +3,7 @@ package com.csc530.smtlib;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.smtlib.CharSequenceReader;
 import org.smtlib.ICommand;
@@ -69,5 +70,10 @@ public class SmtLibRunner {
         }
 
         return runCommand(smtLibCommand);
+    }
+
+    public static void main(String[] args) throws Exception {
+        SmtLibRunner runner = new SmtLibRunner();
+        runner.runSmtLibFile(Paths.get("smt_lib_files/sudoku_hard.txt"));
     }
 }
