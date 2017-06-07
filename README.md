@@ -1,4 +1,4 @@
-CSC 431 Compiler
+CSC 530 satisifier
 ================
 - [About](#about)
 - [Usage](#usage)
